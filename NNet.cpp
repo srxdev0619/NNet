@@ -2963,6 +2963,8 @@ void NNet::testvoids(int mode)
       //cout<<"COUNTS: "<<counts[i]<<endl;
       double frmse = sqrt(LRMSE[i]/(double)counts[i]);
       cout<<"RMSE of file "<<filenames[i]<<" is: "<<frmse<<endl;
+      double averr = (sqrt(LRMSE[i])/(double)counts[i]);
+      cout<<"Error of file "<<filenames[i]<<" is: "<<averr<<endl;
     }
 }
 
@@ -3562,15 +3564,6 @@ void NNet::l_trainrprop(int numlatent, double tmax, int mode)
 			  //cout<<l_tgrads[q][j]<<endl<<endl;
 			  l_tgrads[q][j].fill(0.0);
 			  l_tdels[q][j+1].fill(0.0);
-			  //cout<<"THERE!"<<endl;
-			  //if (rprop > 1)
-			  //{
-			  //  rprop = 3;
-			  //}
-			  //else
-			  //{
-			  //  rprop++;
-			  //}
 			}
 		    }
 		}
