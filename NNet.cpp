@@ -3368,7 +3368,7 @@ void NNet::l_trainrprop(int numlatent, double tmax, int mode)
 			    {
 			      for(int j = 0; j < numlatent; j++)
 				{
-				  l_xvals[idxs.at(k)](j,0) = l_xvals[idxs.at(k)](j,0) - (lrates[q]/(double)numfiles)*l_tdels[q][0](j,0);
+				  l_xvals[idxs.at(k)](j,0) = l_xvals[idxs.at(k)](j,0) - (lrates[q])*l_tdels[q][0](j,0);
 				  l_tdels[q][0].fill(0); //Doing this is textbook but commenting this out just works much much better
 				}
 			    }
@@ -3377,7 +3377,7 @@ void NNet::l_trainrprop(int numlatent, double tmax, int mode)
 			{
 			  for(int j = 0; j < numlatent; j++)
 			    {
-			      l_xvals[idxs.at(k)](j,0) = l_xvals[idxs.at(k)](j,0) - (lrates[q]/(double)numfiles)*l_tdels[q][0](j,0);
+			      l_xvals[idxs.at(k)](j,0) = l_xvals[idxs.at(k)](j,0) - (lrates[q])*l_tdels[q][0](j,0);
 			      l_tdels[q][0].fill(0); //Doing this is textbook but commenting this out just works much much better
 			    }
 			}
@@ -3397,7 +3397,6 @@ void NNet::l_trainrprop(int numlatent, double tmax, int mode)
 		}
 	      else
 		{
-		  //cout<<"RMAX: "<<rmax<<endl;
 		  for (int fl = 0; fl < numfiles; fl++)
 		    {
 		      int l_numhid = l_numhids[fl];
@@ -3427,7 +3426,6 @@ void NNet::l_trainrprop(int numlatent, double tmax, int mode)
 					  l_tgrads[fl][q](rw,cl) = min(l_tgrads[fl][q](rw,cl),rmax);
 					  l_checkgrads[fl][q](rw,cl) = sign*l_tgrads[fl][q](rw,cl);
 					  l_tgrads[fl][q](rw,cl) = sign*l_tgrads[fl][q](rw,cl);
-					  //cout<<"AFTER: "<<l_tgrads[fl][q](rw,cl)<<endl;
 					}
 				    }
 				  else if ((l_checkgrads[fl][q](rw,cl)*l_tgrads[fl][q](rw,cl) < 0) && (revertp == 0))
@@ -3436,7 +3434,6 @@ void NNet::l_trainrprop(int numlatent, double tmax, int mode)
 				      if (rprop == 1)
 					{
 					  double sign = l_tgrads[fl][q](rw,cl)/abs(l_tgrads[fl][q](rw,cl));
-					  cout<<"SIGN"<<sign<<endl;
 					  l_tgrads[fl][q](rw,cl) = -1*l_checkgrads[fl][q](rw,cl);
 					  double temp;
 					  //temp = 0.1*0.9*(l_tgrads[fl][q](rw,cl)/abs(l_tgrads[fl][q](rw,cl)));
@@ -3483,10 +3480,10 @@ void NNet::l_trainrprop(int numlatent, double tmax, int mode)
 				      if (rprop == 1)
 					{
 					  double sign = l_tdels[fl][q+1](rw,cl)/abs(l_tdels[fl][q+1](rw,cl));
-					  l_tdels[fl][q+1](rw,cl) = 0.1*1.2*(l_tdels[fl][q+1](rw,cl)/abs(l_tdels[fl][q+1](rw,cl)));
+					  l_tdels[fl][q+1](rw,cl) = 0.1*1.2;
 					  l_tdels[fl][q+1](rw,cl) = min(l_tdels[fl][q+1](rw,cl),rmax);
 					  l_checkdels[fl][q](rw,cl) = sign*l_tdels[fl][q+1](rw,cl);
-					  l_tdels[fl][q+1] = sign*l_tdels[fl][q+1](rw,cl);
+					  l_tdels[fl][q+1](rw,cl) = sign*l_tdels[fl][q+1](rw,cl);
 					}
 				      else
 					{
@@ -3527,14 +3524,14 @@ void NNet::l_trainrprop(int numlatent, double tmax, int mode)
 				      if (rprop == 1)
 					{
 					  l_tdels[fl][q+1](rw,cl) = 0.1*1.0*(l_tdels[fl][q+1](rw,cl)/abs(l_tdels[fl][q+1](rw,cl)));
-					  l_tdels[fl][q+1](rw,cl) = min(l_tdels[fl][q+1](rw,cl),20.0);
-					  l_checkdels[fl][q](rw,cl) = l_tdels[fl][q+1](rw,cl);
+					  //l_tdels[fl][q+1](rw,cl) = min(l_tdels[fl][q+1](rw,cl),20.0);
+					  //l_checkdels[fl][q](rw,cl) = l_tdels[fl][q+1](rw,cl);
 					}
 				      else
 					{
 					  l_tdels[fl][q+1](rw,cl) = l_checkdels[fl][q](rw,cl)*1.0*(l_tdels[fl][q+1](rw,cl)/abs(l_tdels[fl][q+1](rw,cl)));
-					  l_tdels[fl][q+1](rw,cl) = min(l_tdels[fl][q+1](rw,cl),20.0);
-					  l_checkdels[fl][q](rw,cl) = l_tdels[fl][q+1](rw,cl);
+					  //l_tdels[fl][q+1](rw,cl) = min(l_tdels[fl][q+1](rw,cl),20.0);
+					  //l_checkdels[fl][q](rw,cl) = l_tdels[fl][q+1](rw,cl);
 					}
 				      revertb = 0;
 				    }
@@ -3556,26 +3553,36 @@ void NNet::l_trainrprop(int numlatent, double tmax, int mode)
 			  //cout<<l_tgrads[q][j]<<endl<<endl;
 			  l_tgrads[q][j].fill(0.0);
 			  l_tdels[q][j+1].fill(0.0);
-			  rprop++;
 			}
 		      else
 			{
+			  //cout<<"HERE!"<<endl;
 			  l_params[q][j] = l_params[q][j] - l_tgrads[q][j];
 			  l_bias[q][j] = l_bias[q][j] - l_tdels[q][j+1];
 			  //cout<<l_tgrads[q][j]<<endl<<endl;
 			  l_tgrads[q][j].fill(0.0);
 			  l_tdels[q][j+1].fill(0.0);
-			  if (rprop > 1)
-			    {
-			      rprop = 3;
-			    }
-			  else
-			    {
-			      rprop++;
-			    }
+			  //cout<<"THERE!"<<endl;
+			  //if (rprop > 1)
+			  //{
+			  //  rprop = 3;
+			  //}
+			  //else
+			  //{
+			  //  rprop++;
+			  //}
 			}
 		    }
 		}
+	      if (rprop >= 1)
+		{
+		  rprop = 3;
+		}
+	      else
+		{
+		  rprop++;
+		}
+	      //cout<<"RPROP: "<<rprop<<endl;
 	    }
 	}
     }
