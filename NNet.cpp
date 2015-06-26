@@ -824,9 +824,9 @@ void NNet::train_rprop(int mode,double tmax)
 				  double sign = tgrads[q](rw,cl)/abs(tgrads[q](rw,cl));
 				  tgrads[q](rw,cl) = -1*checkgrads[q](rw,cl);
 				  double temp;
-				  //temp = 0.1*0.9*(tgrads[q](rw,cl)/abs(tgrads[q](rw,cl)));
-				  //temp = max(temp,0.000001);
-				  temp = 0.0000001;
+				  temp = 0.1*0.5;
+				  temp = max(temp,0.000001);
+				  //temp = 0.0000001;
 				  checkgrads[q](rw,cl) = sign*temp;
 				}
 			      else
@@ -834,9 +834,9 @@ void NNet::train_rprop(int mode,double tmax)
 				  double sign = tgrads[q](rw,cl)/abs(tgrads[q](rw,cl));
 				  tgrads[q](rw,cl) = -1*checkgrads[q](rw,cl);
 				  double temp;
-				  //temp = checkgrads[q](rw,cl)*0.9*(tgrads[q](rw,cl)/abs(tgrads[q](rw,cl)));
-				  //temp = max(temp,0.000001);
-				  temp = 0.0000001;
+				  temp = checkgrads[q](rw,cl)*0.9*(tgrads[q](rw,cl)/abs(tgrads[q](rw,cl)));
+				  temp = max(abs(temp),0.000001);
+				  //temp = 0.0000001;
 				  checkgrads[q](rw,cl) = sign*temp;
 				}
 			      revertp = 1;
@@ -849,7 +849,7 @@ void NNet::train_rprop(int mode,double tmax)
 				}
 			      else
 				{
-				  tgrads[q](rw,cl) = checkgrads[q](rw,cl)*1.0*(tgrads[q](rw,cl)/abs(tgrads[q](rw,cl)));
+				  tgrads[q](rw,cl) = abs(checkgrads[q](rw,cl))*1.0*(tgrads[q](rw,cl)/abs(tgrads[q](rw,cl)));
 				}
 			      revertp = 0;
 			    }
@@ -890,9 +890,9 @@ void NNet::train_rprop(int mode,double tmax)
 				  double sign = tdels[q](rw,cl)/abs(tdels[q](rw,cl));
 				  tdels[q](rw,cl) = -1*checkdels[q](rw,cl);
 				  double temp;
-				  //temp = 0.1*0.9*(tdels[q](rw,cl)/abs(tdels[q](rw,cl)));
-				  //temp = max(temp,0.000001);
-				  temp = 0.0000001;
+				  temp = 0.1*0.5;
+				  temp = max(temp,0.000001);
+				  //temp = 0.0000001;
 				  checkdels[q](rw,cl) = sign*temp;
 				}
 			      else
@@ -900,9 +900,9 @@ void NNet::train_rprop(int mode,double tmax)
 				  double sign = tdels[q](rw,cl)/abs(tdels[q](rw,cl));
 				  tdels[q](rw,cl) = -1*checkdels[q](rw,cl);
 				  double temp;
-				  //temp = checkdels[q](rw,cl)*0.9*(tdels[q](rw,cl)/abs(tdels[q](rw,cl)));
-				  //temp = max(temp,0.000001);
-				  temp = 0.0000001;
+				  temp = checkdels[q](rw,cl)*0.5;
+				  temp = max(abs(temp),0.000001);
+				  //temp = 0.0000001;
 				  checkdels[q](rw,cl) = sign*temp;
 				}
 			      revertb = 1;
@@ -912,14 +912,14 @@ void NNet::train_rprop(int mode,double tmax)
 			      if (rprop == 1)
 				{
 				  tdels[q](rw,cl) = 0.1*1.0*(tdels[q](rw,cl)/abs(tdels[q](rw,cl)));
-				  tdels[q](rw,cl) = min(tdels[q](rw,cl),20.0);
-				  checkdels[q](rw,cl) = tdels[q](rw,cl);
+				  //tdels[q](rw,cl) = min(tdels[q](rw,cl),20.0);
+				  //checkdels[q](rw,cl) = tdels[q](rw,cl);
 				}
 			      else
 				{
-				  tdels[q](rw,cl) = checkdels[q](rw,cl)*1.0*(tdels[q](rw,cl)/abs(tdels[q](rw,cl)));
-				  tdels[q](rw,cl) = min(tdels[q](rw,cl),20.0);
-				  checkdels[q](rw,cl) = tdels[q](rw,cl);
+				  tdels[q](rw,cl) = abs(checkdels[q](rw,cl))*1.0*(tdels[q](rw,cl)/abs(tdels[q](rw,cl)));
+				  //tdels[q](rw,cl) = min(tdels[q](rw,cl),20.0);
+				  //checkdels[q](rw,cl) = tdels[q](rw,cl);
 				}
 			      revertb = 0;
 			    }
@@ -941,15 +941,15 @@ void NNet::train_rprop(int mode,double tmax)
 		  bias[l] = bias[l] - tdels[l];
 		  tgrads[l].fill(0);
 		  tdels[l].fill(0);
-		  if (rprop > 1)
-		    {
-		      rprop = 3;
-		    }
-		  else
-		    {
-		      rprop++;
-		    }
 		}
+	    }
+	  if (rprop >= 1)
+	    {
+	      rprop = 3;
+	    }
+	  else
+	    {
+	      rprop++;
 	    }
 	}
     }
@@ -1061,9 +1061,9 @@ void NNet::train_rprop(int mode,double tmax)
 				      tgrads[q](rw,cl) = -1*checkgrads[q](rw,cl);
 				      double temp;
 				      //temp = 0.1*0.9;
-				      //temp = 0.1*0.5*(tgrads[q](rw,cl)/abs(tgrads[q](rw,cl)));
-				      //temp = max(temp,0.000001);
-				      temp = 0.0000001;
+				      temp = 0.1*0.5;
+				      temp = max(temp,0.000001);
+				      //temp = 0.0000001;
 				      //checkgrads[q](rw,cl) = sign*temp;
 				      checkgrads[q](rw,cl) = sign*temp;
 				    }
@@ -1073,9 +1073,9 @@ void NNet::train_rprop(int mode,double tmax)
 				      tgrads[q](rw,cl) = -1*checkgrads[q](rw,cl);
 				      double temp;
 				      //temp = abs(checkgrads[q](rw,cl))*0.9;
-				      //temp = checkgrads[q](rw,cl)*0.5*(tgrads[q](rw,cl)/abs(tgrads[q](rw,cl)));
-				      //temp = max(temp,0.00001);
-				      temp = 0.0000001;
+				      temp = checkgrads[q](rw,cl)*0.5;
+				      temp = max(abs(temp),0.0000001);
+				      //temp = 0.0000001;
 				      //cout<<temp<<endl;
 				      //checkgrads[q](rw,cl) = sign*temp;
 				      checkgrads[q](rw,cl) = sign*temp;
@@ -1091,7 +1091,7 @@ void NNet::train_rprop(int mode,double tmax)
 				    }
 				  else
 				    {
-				      tgrads[q](rw,cl) = checkgrads[q](rw,cl)*1.0*(tgrads[q](rw,cl)/abs(tgrads[q](rw,cl)));
+				      tgrads[q](rw,cl) = abs(checkgrads[q](rw,cl))*1.0*(tgrads[q](rw,cl)/abs(tgrads[q](rw,cl)));
 				    }
 				  revertp = 0;
 				}
@@ -1134,10 +1134,10 @@ void NNet::train_rprop(int mode,double tmax)
 				      double sign = tdels[q](rw,cl)/abs(tdels[q](rw,cl));
 				      tdels[q](rw,cl) = -1*checkdels[q](rw,cl);
 				      double temp;
-				      //temp = 0.1*0.9;
+				      temp = 0.1*0.5;
 				      //temp = 0.1*0.9*(tdels[q](rw,cl)/abs(tdels[q](rw,cl)));
-				      //temp = max(temp,0.000001);
-				      temp = 0.0000001;
+				      temp = max(temp,0.000001);
+				      //temp = 0.0000001;
 				      //checkdels[q](rw,cl) = sign*temp;
 				      checkdels[q](rw,cl) = sign*temp;
 				    }
@@ -1146,9 +1146,9 @@ void NNet::train_rprop(int mode,double tmax)
 				      double sign = tdels[q](rw,cl)/abs(tdels[q](rw,cl));
 				      tdels[q](rw,cl) = -1*checkdels[q](rw,cl);
 				      double temp;
-				      //temp = checkdels[q](rw,cl)*0.9*(tdels[q](rw,cl)/abs(tdels[q](rw,cl)));
-				      //temp = max(temp,0.000001);
-				      temp = 0.0000001;
+				      temp = checkdels[q](rw,cl)*0.5;
+				      temp = max(abs(temp),0.000001);
+				      //temp = 0.0000001;
 				      //checkdels[q](rw,cl) = sign*temp;
 				      checkdels[q](rw,cl) = sign*temp;
 				    }
@@ -1162,7 +1162,7 @@ void NNet::train_rprop(int mode,double tmax)
 				    }
 				  else
 				    {
-				      tdels[q](rw,cl) = checkdels[q](rw,cl)*1.0*(tdels[q](rw,cl)/abs(tdels[q](rw,cl)));
+				      tdels[q](rw,cl) = abs(checkdels[q](rw,cl))*1.0*(tdels[q](rw,cl)/abs(tdels[q](rw,cl)));
 				    }
 				  revertb = 0;
 				}
@@ -1186,15 +1186,15 @@ void NNet::train_rprop(int mode,double tmax)
 		      bias[j] = bias[j] - tdels[j];
 		      tgrads[j].fill(0);
 		      tdels[j].fill(0);
-		      if (rprop > 1)
-			{
-			  rprop = 3;
-			}
-		      else
-			{
-			  rprop++;
-			}
 		    }
+		}
+	      if(rprop >= 1)
+		{
+		  rprop = 3;
+		}
+	      else
+		{
+		  rprop++;
 		}
 	    }
 	  //Below takes extra measures so that the network converges
@@ -3142,15 +3142,17 @@ void NNet::l_trainrprop(int numlatent, double tmax, int mode)
 				  //push up weight
 				  if (rprop == 1)
 				    {
+				      double sign = l_tgrads[fl][q](rw,cl)/abs(l_tgrads[fl][q](rw,cl));
 				      l_tgrads[fl][q](rw,cl) = 0.1*1.2;
 				      l_tgrads[fl][q](rw,cl) = min(l_tgrads[fl][q](rw,cl),rmax);
-				      l_checkgrads[fl][q](rw,cl) = l_tgrads[fl][q](rw,cl);
+				      l_checkgrads[fl][q](rw,cl) = sign*l_tgrads[fl][q](rw,cl);
 				    }
 				  else
 				    {
+				      double sign = l_tgrads[fl][q](rw,cl)/abs(l_tgrads[fl][q](rw,cl));
 				      l_tgrads[fl][q](rw,cl) = l_checkgrads[fl][q](rw,cl)*1.2*(l_tgrads[fl][q](rw,cl)/abs(l_tgrads[fl][q](rw,cl)));
 				      l_tgrads[fl][q](rw,cl) = min(l_tgrads[fl][q](rw,cl),rmax);
-				      l_checkgrads[fl][q](rw,cl) = l_tgrads[fl][q](rw,cl);
+				      l_checkgrads[fl][q](rw,cl) = sign*l_tgrads[fl][q](rw,cl);
 				    }
 				}
 			      else if ((l_checkgrads[fl][q](rw,cl)*l_tgrads[fl][q](rw,cl) < 0) && (revertp == 0))
@@ -3158,19 +3160,21 @@ void NNet::l_trainrprop(int numlatent, double tmax, int mode)
 				  //pushdown weight
 				  if (rprop == 1)
 				    {
+				      double sign = l_tgrads[fl][q](rw,cl)/abs(l_tgrads[fl][q](rw,cl));
 				      l_tgrads[fl][q](rw,cl) = -1*l_checkgrads[fl][q](rw,cl);
 				      double temp;
-				      temp = 0.1*0.9*(l_tgrads[fl][q](rw,cl)/abs(l_tgrads[fl][q](rw,cl)));
-				      temp = max(temp,0.000001);
-				      l_checkgrads[fl][q](rw,cl) = temp;
+				      temp = 0.1*0.5*(l_tgrads[fl][q](rw,cl)/abs(l_tgrads[fl][q](rw,cl)));
+				      temp = max(abs(temp),0.000001);
+				      l_checkgrads[fl][q](rw,cl) = sign*temp;
 				    }
 				  else
 				    {
+				      double sign = l_tgrads[fl][q](rw,cl)/abs(l_tgrads[fl][q](rw,cl));
 				      l_tgrads[fl][q](rw,cl) = -1*l_checkgrads[fl][q](rw,cl);
 				      double temp;
-				      temp = l_checkgrads[fl][q](rw,cl)*0.9*(l_tgrads[fl][q](rw,cl)/abs(l_tgrads[fl][q](rw,cl)));
-				      temp = max(temp,0.000001);
-				      l_checkgrads[fl][q](rw,cl) = temp;
+				      temp = l_checkgrads[fl][q](rw,cl)*0.5;
+				      temp = max(abs(temp),0.000001);
+				      l_checkgrads[fl][q](rw,cl) = sign*temp;
 				    }
 				  revertp = 1;
 				}
@@ -3182,7 +3186,7 @@ void NNet::l_trainrprop(int numlatent, double tmax, int mode)
 				    }
 				  else
 				    {
-				      l_tgrads[fl][q](rw,cl) = l_checkgrads[fl][q](rw,cl)*1.0*(l_tgrads[fl][q](rw,cl)/abs(l_tgrads[fl][q](rw,cl)));
+				      l_tgrads[fl][q](rw,cl) = abs(l_checkgrads[fl][q](rw,cl))*1.0*(l_tgrads[fl][q](rw,cl)/abs(l_tgrads[fl][q](rw,cl)));
 				    }
 				  revertp = 0;
 				}
@@ -3200,15 +3204,18 @@ void NNet::l_trainrprop(int numlatent, double tmax, int mode)
 				  //push up weight
 				  if (rprop == 1)
 				    {
+				      double sign = l_tdels[fl][q+1](rw,cl)/abs(l_tdels[fl][q+1](rw,cl));
 				      l_tdels[fl][q+1](rw,cl) = 0.1*1.2*(l_tdels[fl][q+1](rw,cl)/abs(l_tdels[fl][q+1](rw,cl)));
 				      l_tdels[fl][q+1](rw,cl) = min(l_tdels[fl][q+1](rw,cl),rmax);
-				  l_checkdels[fl][q](rw,cl) = l_tdels[fl][q+1](rw,cl);
+				      l_checkdels[fl][q](rw,cl) = sign*l_tdels[fl][q+1](rw,cl);
 				    }
 				  else
 				    {
+				      //double sign = l_tdels[fl][q+1](rw,cl)/abs(l_tdels[fl][q+1](rw,cl));
+				      double sign = l_tdels[fl][q+1](rw,cl)/abs(l_tdels[fl][q+1](rw,cl));
 				      l_tdels[fl][q+1](rw,cl) = l_checkdels[fl][q](rw,cl)*1.2*(l_tdels[fl][q+1](rw,cl)/abs(l_tdels[fl][q+1](rw,cl)));
 				      l_tdels[fl][q+1](rw,cl) = min(l_tdels[fl][q+1](rw,cl),rmax);
-				      l_checkdels[fl][q](rw,cl) = l_tdels[fl][q+1](rw,cl);
+				      l_checkdels[fl][q](rw,cl) = sign*l_tdels[fl][q+1](rw,cl);
 				    }
 				}
 			      else if ((l_checkdels[fl][q](rw,cl)*l_tdels[fl][q+1](rw,cl) < 0) && (revertb == 0))
@@ -3216,19 +3223,21 @@ void NNet::l_trainrprop(int numlatent, double tmax, int mode)
 				  //pushdown weight
 				  if (rprop == 1)
 				    {
+				      double sign = l_tdels[fl][q+1](rw,cl)/abs(l_tdels[fl][q+1](rw,cl));
 				      l_tdels[fl][q+1](rw,cl) = -1*l_checkdels[fl][q](rw,cl);
 				      double temp;
-				      temp = 0.1*0.9*(l_tdels[fl][q+1](rw,cl)/abs(l_tdels[fl][q+1](rw,cl)));
+				      temp = 0.1*0.5;
 				      temp = max(temp,0.000001);
-				      l_checkdels[fl][q](rw,cl) = temp;
+				      l_checkdels[fl][q](rw,cl) = sign*temp;
 				    }
 				  else
 				    {
+				      double sign = l_tdels[fl][q+1](rw,cl)/abs(l_tdels[fl][q+1](rw,cl));
 				      l_tdels[fl][q+1](rw,cl) = -1*l_checkdels[fl][q](rw,cl);
 				      double temp;
-				      temp = l_checkdels[fl][q](rw,cl)*0.9*(l_tdels[fl][q+1](rw,cl)/abs(l_tdels[fl][q+1](rw,cl)));
-				      temp = max(temp,0.000001);
-				      l_checkdels[fl][q](rw,cl) = temp;
+				      temp = l_checkdels[fl][q](rw,cl)*0.5;
+				      temp = max(abs(temp),0.000001);
+				      l_checkdels[fl][q](rw,cl) = sign*temp;
 				    }
 				  revertb = 1;
 				}
@@ -3237,14 +3246,14 @@ void NNet::l_trainrprop(int numlatent, double tmax, int mode)
 				  if (rprop == 1)
 				    {
 				      l_tdels[fl][q+1](rw,cl) = 0.1*1.0*(l_tdels[fl][q+1](rw,cl)/abs(l_tdels[fl][q+1](rw,cl)));
-				      l_tdels[fl][q+1](rw,cl) = min(l_tdels[fl][q+1](rw,cl),20.0);
-				      l_checkdels[fl][q](rw,cl) = l_tdels[fl][q+1](rw,cl);
+				      //l_tdels[fl][q+1](rw,cl) = min(l_tdels[fl][q+1](rw,cl),20.0);
+				      //l_checkdels[fl][q](rw,cl) = l_tdels[fl][q+1](rw,cl);
 				    }
 				  else
 				    {
-				      l_tdels[fl][q+1](rw,cl) = l_checkdels[fl][q](rw,cl)*1.0*(l_tdels[fl][q+1](rw,cl)/abs(l_tdels[fl][q+1](rw,cl)));
-				      l_tdels[fl][q+1](rw,cl) = min(l_tdels[fl][q+1](rw,cl),20.0);
-				      l_checkdels[fl][q](rw,cl) = l_tdels[fl][q+1](rw,cl);
+				      l_tdels[fl][q+1](rw,cl) = abs(l_checkdels[fl][q](rw,cl))*1.0*(l_tdels[fl][q+1](rw,cl)/abs(l_tdels[fl][q+1](rw,cl)));
+				      //l_tdels[fl][q+1](rw,cl) = min(l_tdels[fl][q+1](rw,cl),20.0);
+				      //l_checkdels[fl][q](rw,cl) = l_tdels[fl][q+1](rw,cl);
 				    }
 				  revertb = 0;
 				}
@@ -3264,7 +3273,6 @@ void NNet::l_trainrprop(int numlatent, double tmax, int mode)
 		      l_bias[t][l] = l_bias[t][l] - (lrates[t]/(double)train)*l_tdels[t][l+1];
 		      l_tgrads[t][l].fill(0);
 		      l_tdels[t][l+1].fill(0);
-		      rprop++;
 		    }
 		  else
 		    {
@@ -3272,17 +3280,17 @@ void NNet::l_trainrprop(int numlatent, double tmax, int mode)
 		      l_bias[t][l] = l_bias[t][l] - l_tdels[t][l+1];
 		      l_tgrads[t][l].fill(0);
 		      l_tdels[t][l+1].fill(0);
-		      if (rprop > 1)
-			{
-			  rprop = 3;
-			}
-		      else
-			{
-			  rprop++;
-			}
 		    }
 		}
 	    }
+	   if (rprop > 1)
+	     {
+	       rprop = 3;
+	     }
+	   else
+	     {
+	       rprop++;
+	     }
 	}
     }
   //TODO:MODIFY SGD FOR LATENT PARAMS
@@ -3438,9 +3446,9 @@ void NNet::l_trainrprop(int numlatent, double tmax, int mode)
 					  double sign = l_tgrads[fl][q](rw,cl)/abs(l_tgrads[fl][q](rw,cl));
 					  l_tgrads[fl][q](rw,cl) = -1*l_checkgrads[fl][q](rw,cl);
 					  double temp;
-					  //temp = 0.1*0.9*(l_tgrads[fl][q](rw,cl)/abs(l_tgrads[fl][q](rw,cl)));
-					  //temp = max(temp,0.000001);
-					  temp = 0.0000001;
+					  temp = 0.1*0.5;
+					  temp = max(temp,0.000001);
+					  temp = 0.001;
 					  l_checkgrads[fl][q](rw,cl) = sign*temp;
 					}
 				      else
@@ -3448,9 +3456,9 @@ void NNet::l_trainrprop(int numlatent, double tmax, int mode)
 					  double sign = l_tgrads[fl][q](rw,cl)/abs(l_tgrads[fl][q](rw,cl));
 					  l_tgrads[fl][q](rw,cl) = -1*l_checkgrads[fl][q](rw,cl);
 					  double temp;
-					  //temp = l_checkgrads[fl][q](rw,cl)*0.9*(l_tgrads[fl][q](rw,cl)/abs(l_tgrads[fl][q](rw,cl)));
-					  //temp = max(temp,0.000001);
-					  temp = 0.000001;
+					  temp = l_checkgrads[fl][q](rw,cl)*0.5;
+					  temp = max(abs(temp),0.000001);
+					  //temp = 0.001;
 					  l_checkgrads[fl][q](rw,cl) = sign*temp;
 					}
 				      revertp = 1;
@@ -3463,7 +3471,7 @@ void NNet::l_trainrprop(int numlatent, double tmax, int mode)
 					}
 				      else
 					{
-					  l_tgrads[fl][q](rw,cl) = l_checkgrads[fl][q](rw,cl)*1.0*(l_tgrads[fl][q](rw,cl)/abs(l_tgrads[fl][q](rw,cl)));
+					  l_tgrads[fl][q](rw,cl) = abs(l_checkgrads[fl][q](rw,cl))*1.0*(l_tgrads[fl][q](rw,cl)/abs(l_tgrads[fl][q](rw,cl)));
 					}
 				      revertp = 0;
 				    }
@@ -3504,9 +3512,9 @@ void NNet::l_trainrprop(int numlatent, double tmax, int mode)
 					  double sign = l_tdels[fl][q+1](rw,cl)/abs(l_tdels[fl][q+1](rw,cl));
 					  l_tdels[fl][q+1](rw,cl) = -1*l_checkdels[fl][q](rw,cl);
 					  double temp;
-					  //temp = 0.1*0.9*(l_tdels[fl][q+1](rw,cl)/abs(l_tdels[fl][q+1](rw,cl)));
-					  //temp = max(temp,0.000001);
-					  temp = 0.0000001;
+					  temp = 0.1*0.5;
+					  temp = max(abs(temp),0.000001);
+					  //temp = 0.0000001;
 					  l_checkdels[fl][q](rw,cl) = sign*temp;
 					}
 				      else
@@ -3514,9 +3522,9 @@ void NNet::l_trainrprop(int numlatent, double tmax, int mode)
 					  double sign = l_tdels[fl][q+1](rw,cl)/abs(l_tdels[fl][q+1](rw,cl));
 					  l_tdels[fl][q+1](rw,cl) = -1*l_checkdels[fl][q](rw,cl);
 					  double temp;
-					  //temp = l_checkdels[fl][q](rw,cl)*0.9*(l_tdels[fl][q+1](rw,cl)/abs(l_tdels[fl][q+1](rw,cl)));
-					  //temp = max(temp,0.000001);
-					  temp = 0.0000001;
+					  temp = l_checkdels[fl][q](rw,cl)*0.5;
+					  temp = max(abs(temp),0.000001);
+					  //temp = 0.0000001;
 					  l_checkdels[fl][q](rw,cl) = sign*temp;
 					}
 				      revertb = 1;
@@ -3531,7 +3539,7 @@ void NNet::l_trainrprop(int numlatent, double tmax, int mode)
 					}
 				      else
 					{
-					  l_tdels[fl][q+1](rw,cl) = l_checkdels[fl][q](rw,cl)*1.0*(l_tdels[fl][q+1](rw,cl)/abs(l_tdels[fl][q+1](rw,cl)));
+					  l_tdels[fl][q+1](rw,cl) = abs(l_checkdels[fl][q](rw,cl))*1.0*(l_tdels[fl][q+1](rw,cl)/abs(l_tdels[fl][q+1](rw,cl)));
 					  //l_tdels[fl][q+1](rw,cl) = min(l_tdels[fl][q+1](rw,cl),20.0);
 					  //l_checkdels[fl][q](rw,cl) = l_tdels[fl][q+1](rw,cl);
 					}
