@@ -448,6 +448,14 @@ void NNet::backprop(mat x, mat y, int gpos)
 	{
 	  dels[idx].push_back((y - activ[idx][numhid+1])%(ones<mat>(numlayers[numhid+1],1) - activ[idx][numhid+1]%activ[idx][numhid+1]));
 	}
+      else if(funclayer[numhid] == 2)
+	{
+	  for (int i = 0; i < numlayers[numhid+1]; i++)
+	    {
+	      sums[idx][numhid + 1](i,0) = tanh_dr(sums[idx][numhid + 1](i,0));
+	    }
+	  dels[idx].push_back((activ[idx][numhid+1]-y)%sums[idx][numhid+1]);
+	}
       else if (funclayer[numhid] == 3)
 	{
 	  for (int i = 0; i < numlayers[numhid+1]; i++)
@@ -455,7 +463,6 @@ void NNet::backprop(mat x, mat y, int gpos)
 	      sums[idx][numhid + 1](i,0) = tanh_d(sums[idx][numhid + 1](i,0));
 	    }
 	  dels[idx].push_back((activ[idx][numhid+1]-y)%sums[idx][numhid+1]);
-	  //cout<<"DIFF: "<<activ[idx][numhid + 1](0,0)<<" "<<y(0,0)<<endl;
 	}
     }
   else
