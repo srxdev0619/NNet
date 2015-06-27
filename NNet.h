@@ -90,6 +90,7 @@ class NNet
   vector< vector<mat> > l_checkgrads;
   vector< vector<mat> > l_checkdels;
   vector<std::thread> l_bpthreads;
+  mat lat_checkgrads;
   vector< vector<int> > Q_mat; 
   int file_nlines;
   int l_train;
