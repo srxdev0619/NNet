@@ -74,6 +74,18 @@ double NNet::reclinear(double x)
     }
 }
 
+double NNet::rec_D(double x)
+{
+  if (x < 0)
+    {
+      return 0;
+    }
+  else
+    {
+      return 1;
+    }
+}
+
 double NNet::softplus(double x)
 {
   return log(1 + exp(x));
@@ -452,7 +464,7 @@ void NNet::backprop(mat x, mat y, int gpos)
 	{
 	  for (int i = 0; i < numlayers[numhid+1]; i++)
 	    {
-	      sums[idx][numhid + 1](i,0) = tanh_dr(sums[idx][numhid + 1](i,0));
+	      sums[idx][numhid + 1](i,0) = rec_D(sums[idx][numhid + 1](i,0));
 	    }
 	  dels[idx].push_back((activ[idx][numhid+1]-y)%sums[idx][numhid+1]);
 	}
@@ -479,6 +491,22 @@ void NNet::backprop(mat x, mat y, int gpos)
       if (funclayer[numhid - count] == 0)
 	{ 
 	  derv = activ[idx][numhid- i] - (activ[idx][numhid - i]%activ[idx][numhid - i]);
+	}
+      else if (funclayer[numhid - count] == 1)
+	{
+	  int n = numlayers[numhid - i];
+	  for (int j = 0; j < n; j++)
+	    {
+	      derv(j,0) = tanh_dr(derv(j,0));
+	    }
+	}
+      else if (funclayer[numhid - count] == 2)
+	{
+	  int n = numlayers[numhid - i];
+	  for (int j = 0; j < n; j++)
+	    {
+	      derv(j,0) = rec_D(derv(j,0));
+	    }
 	}
       else if (funclayer[numhid-count] == 3)
 	{
@@ -817,7 +845,7 @@ void NNet::train_rprop(int mode,double tmax)
 			      else
 				{
 				  double sign = tgrads[q](rw,cl)/abs(tgrads[q](rw,cl));
-				  tgrads[q](rw,cl) = checkgrads[q](rw,cl)*1.2*(tgrads[q](rw,cl)/abs(tgrads[q](rw,cl)));
+				  tgrads[q](rw,cl) = sign*checkgrads[q](rw,cl)*1.2;
 				  tgrads[q](rw,cl) = min(tgrads[q](rw,cl),rmax);
 				  checkgrads[q](rw,cl) = sign*tgrads[q](rw,cl);
 				  tgrads[q](rw,cl) = sign*tgrads[q](rw,cl);
@@ -883,7 +911,7 @@ void NNet::train_rprop(int mode,double tmax)
 			      else
 				{
 				  double sign = tdels[q](rw,cl)/abs(tdels[q](rw,cl));
-				  tdels[q](rw,cl) = checkdels[q](rw,cl)*1.2*(tdels[q](rw,cl)/abs(tdels[q](rw,cl)));
+				  tdels[q](rw,cl) = sign*checkdels[q](rw,cl)*1.2;
 				  tdels[q](rw,cl) = min(tdels[q](rw,cl),rmax);
 				  checkdels[q](rw,cl) = sign*tdels[q](rw,cl);
 				  tdels[q](rw,cl) = sign*tdels[q](rw,cl);
@@ -1050,7 +1078,7 @@ void NNet::train_rprop(int mode,double tmax)
 				    {
 				      double sign = tgrads[q](rw,cl)/abs(tgrads[q](rw,cl));
 				      //tgrads[q](rw,cl) = abs(checkgrads[q](rw,cl))*1.2;
-				      tgrads[q](rw,cl) = checkgrads[q](rw,cl)*1.2*(tgrads[q](rw,cl)/abs(tgrads[q](rw,cl)));
+				      tgrads[q](rw,cl) = sign*checkgrads[q](rw,cl)*1.2;
 				      tgrads[q](rw,cl) = min(tgrads[q](rw,cl),rmax);
 				      //checkgrads[q](rw,cl) = sign*tgrads[q](rw,cl);
 				      checkgrads[q](rw,cl) = sign*tgrads[q](rw,cl);
@@ -1126,7 +1154,7 @@ void NNet::train_rprop(int mode,double tmax)
 				  else
 				    {
 				      double sign = tdels[q](rw,cl)/abs(tdels[q](rw,cl));
-				      tdels[q](rw,cl) = checkdels[q](rw,cl)*1.2*(tdels[q](rw,cl)/abs(tdels[q](rw,cl)));
+				      tdels[q](rw,cl) = sign*checkdels[q](rw,cl)*1.2;
 				      tdels[q](rw,cl) = min(tdels[q](rw,cl),rmax);
 				      checkdels[q](rw,cl) = sign*tdels[q](rw,cl);
 				      tdels[q](rw,cl) = sign*tdels[q](rw,cl);
@@ -2216,6 +2244,14 @@ void NNet::l_backprop(mat x, mat y, int gpos)
 	{
 	  l_dels[idx].push_back((y - l_activ[idx][l_numhid+1])%(ones<mat>(numlayers[l_numhid+1],1) - l_activ[idx][l_numhid+1]%l_activ[idx][l_numhid+1]));
 	}
+      else if (l_funclayer[idx][l_numhid] == 2)
+	{
+	  for (int i = 0; i < l_numlayers[idx][l_numhid+1]; i++)
+	    {
+	      l_sums[idx][l_numhid + 1](i,0) = rec_D(l_sums[idx][l_numhid + 1](i,0));
+	    }
+	  l_dels[idx].push_back((l_activ[idx][l_numhid+1]-y)%l_sums[idx][l_numhid+1]);
+	}
       else if (l_funclayer[idx][l_numhid] == 3)
 	{
 	  for (int i = 0; i < l_numlayers[idx][l_numhid+1]; i++)
@@ -2223,7 +2259,6 @@ void NNet::l_backprop(mat x, mat y, int gpos)
 	      l_sums[idx][l_numhid + 1](i,0) = tanh_d(l_sums[idx][l_numhid + 1](i,0));
 	    }
 	  l_dels[idx].push_back((l_activ[idx][l_numhid+1]-y)%l_sums[idx][l_numhid+1]);
-	  //cout<<"DIFF: "<<l_activ[idx][l_numhid + 1](0,0)<<" "<<y(0,0)<<endl;
 	}
     }
   else
@@ -2242,6 +2277,22 @@ void NNet::l_backprop(mat x, mat y, int gpos)
 	  if (l_funclayer[idx][l_numhid - count] == 0)
 	    { 
 	      derv = activ[idx][l_numhid- i] - (l_activ[idx][l_numhid - i]%l_activ[idx][l_numhid - i]);
+	    }
+	  else if (l_funclayer[idx][l_numhid-count] == 1)
+	    {
+	      int n = l_numlayers[idx][l_numhid - i];
+	      for (int j = 0; j < n; j++)
+		{
+		  derv(j,0) = tanh_dr(derv(j,0));
+		}
+	    }
+	  else if (l_funclayer[idx][l_numhid - count] == 2)
+	    {
+	      int n = l_numlayers[idx][l_numhid - i];
+	      for (int j = 0; j < n; j++)
+		{
+		  derv(j,0) = rec_D(derv(j,0));
+		}
 	    }
 	  else if (l_funclayer[idx][l_numhid-count] == 3)
 	    {
@@ -3034,7 +3085,7 @@ void NNet::l_trainrprop(int numlatent, double tmax, int mode)
   vector<double> lrates;
   for(int i = 0; i < numfiles; i++)
     {
-      double rate = 0.001;
+      double rate = 0.0001;
       //cout<<"Please enter the desired learning rate for NN "<<to_string(i+1)<<": ";
       //cin>>rate;
       lrates.push_back(rate);
@@ -3157,7 +3208,7 @@ void NNet::l_trainrprop(int numlatent, double tmax, int mode)
 				  else
 				    {
 				      double sign = l_tgrads[fl][q](rw,cl)/abs(l_tgrads[fl][q](rw,cl));
-				      l_tgrads[fl][q](rw,cl) = l_checkgrads[fl][q](rw,cl)*1.2*(l_tgrads[fl][q](rw,cl)/abs(l_tgrads[fl][q](rw,cl)));
+				      l_tgrads[fl][q](rw,cl) = sign*l_checkgrads[fl][q](rw,cl)*1.2;
 				      l_tgrads[fl][q](rw,cl) = min(l_tgrads[fl][q](rw,cl),rmax);
 				      l_checkgrads[fl][q](rw,cl) = sign*l_tgrads[fl][q](rw,cl);
 				    }
@@ -3220,7 +3271,7 @@ void NNet::l_trainrprop(int numlatent, double tmax, int mode)
 				    {
 				      //double sign = l_tdels[fl][q+1](rw,cl)/abs(l_tdels[fl][q+1](rw,cl));
 				      double sign = l_tdels[fl][q+1](rw,cl)/abs(l_tdels[fl][q+1](rw,cl));
-				      l_tdels[fl][q+1](rw,cl) = l_checkdels[fl][q](rw,cl)*1.2*(l_tdels[fl][q+1](rw,cl)/abs(l_tdels[fl][q+1](rw,cl)));
+				      l_tdels[fl][q+1](rw,cl) = sign*l_checkdels[fl][q](rw,cl)*1.2;
 				      l_tdels[fl][q+1](rw,cl) = min(l_tdels[fl][q+1](rw,cl),rmax);
 				      l_checkdels[fl][q](rw,cl) = sign*l_tdels[fl][q+1](rw,cl);
 				    }
@@ -3439,7 +3490,7 @@ void NNet::l_trainrprop(int numlatent, double tmax, int mode)
 				      else
 					{
 					  double sign = l_tgrads[fl][q](rw,cl)/abs(l_tgrads[fl][q](rw,cl));
-					  l_tgrads[fl][q](rw,cl) = l_checkgrads[fl][q](rw,cl)*1.2*(l_tgrads[fl][q](rw,cl)/abs(l_tgrads[fl][q](rw,cl)));
+					  l_tgrads[fl][q](rw,cl) = sign*l_checkgrads[fl][q](rw,cl)*1.2;
 					  l_tgrads[fl][q](rw,cl) = min(l_tgrads[fl][q](rw,cl),rmax);
 					  l_checkgrads[fl][q](rw,cl) = sign*l_tgrads[fl][q](rw,cl);
 					  l_tgrads[fl][q](rw,cl) = sign*l_tgrads[fl][q](rw,cl);
@@ -3505,7 +3556,7 @@ void NNet::l_trainrprop(int numlatent, double tmax, int mode)
 				      else
 					{
 					  double sign = l_tdels[fl][q+1](rw,cl)/abs(l_tdels[fl][q+1](rw,cl));
-					  l_tdels[fl][q+1](rw,cl) = l_checkdels[fl][q](rw,cl)*1.2*(l_tdels[fl][q+1](rw,cl)/abs(l_tdels[fl][q+1](rw,cl)));
+					  l_tdels[fl][q+1](rw,cl) = sign*l_checkdels[fl][q](rw,cl)*1.2;
 					  l_tdels[fl][q+1](rw,cl) = min(l_tdels[fl][q+1](rw,cl),rmax);
 					  l_checkdels[fl][q](rw,cl) = sign*l_tdels[fl][q+1](rw,cl);
 					  l_tdels[fl][q+1](rw,cl) = sign*l_tdels[fl][q+1](rw,cl);
