@@ -1,4 +1,5 @@
-###NNet is a neural network library written in C++. A list of methods available to the NNet object and thier brief descriptions is given below:
+###NNet is a neural network library written in C++. 
+A list of methods available to the NNet object and their brief descriptions is given below:
 
 
 ####Standard Methods:
