@@ -5,8 +5,6 @@
 #include<cctype>
 #include"NNet.h"
 #include<cmath>
-//#include<thread>
-//#include<boost/python.hpp>
 
 using namespace std;
 using namespace arma;
