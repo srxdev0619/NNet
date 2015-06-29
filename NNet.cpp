@@ -28,6 +28,8 @@ NNet::NNet()
   temp_rmse = 10000;
   min_rmse = -1;
   qmat = 0;
+  trained = 0;
+  l_trained = 0;
   //paracheck.push_back(0);
 }
 
@@ -536,6 +538,11 @@ void NNet::train_net(double lrate, int mode)
       cout<<"Training mode can only be 0 or 1"<<endl;
       return;
     }
+  for(int i = 0; i < numhid + 1; i++)
+    {
+      tgrads[i].fill(0);
+      tdels[i].fill(0);
+    }
   double ttemp_rmse;
   int ecount = 0;
   if (gradd == 0)
@@ -778,6 +785,11 @@ void NNet::train_rprop(int mode,double tmax)
     {
       cout<<"Training mode can only be 0 or 1"<<endl;
       return;
+    }
+  for(int i = 0; i < numhid + 1; i++)
+    {
+      tgrads[i].fill(0);
+      tdels[i].fill(0);
     }
   int rprop = 0;
   double ttemp_rmse;
@@ -2331,7 +2343,7 @@ void NNet::l_trainnet(int numlatent, int mode)
       cout<<"Training mode can only be 0 or 1"<<endl;
       return;
     }
-  if (numlatent >= 0)
+  if ((numlatent >= 0) && (l_trained == 0))
     {
       if (l_xvals.empty())
 	{
@@ -2369,8 +2381,23 @@ void NNet::l_trainnet(int numlatent, int mode)
     }
   else
     {
-      cout<<"Number of latent parameters must be greater than 1"<<endl;
-      return;
+      if (numlatent < 0)
+	{
+	  cout<<"Number of latent parameters must be greater than 1"<<endl;
+	  return;
+	}
+      else
+	{
+	  for(int i = 0; i < numfiles; i++)
+	    {
+	      l_tdels[i][0].fill(0);
+	      for (int j = 0; j < l_numhids[i] + 1; j++)
+		{
+		  l_tgrads[i][j].fill(0);
+		  l_tdels[i][j+1].fill(0);
+		}
+	    }
+	}
     }
   //double ttemp_rmse;
   //int ecount = 0;
@@ -2511,7 +2538,7 @@ void NNet::l_trainnet(int numlatent, int mode)
 	{
 	  cout<<((double)i/(double)epoch)*100<<"%\n";
 	  testvoids(0);
-	  //cout<<endl;
+	  cout<<endl;
 	  int step = 0;
 	  for (int lr = 0; lr < numfiles; lr++)
 	    {
@@ -2657,6 +2684,7 @@ void NNet::l_trainnet(int numlatent, int mode)
 	    }
 	}
     }
+  l_trained++;
   return;
 }
 
@@ -3046,7 +3074,7 @@ void NNet::l_trainrprop(int numlatent, double tmax, int mode)
       cout<<"Training mode can only be 0 or 1"<<endl;
       return;
     }
-  if (numlatent >= 0)
+  if ((numlatent >= 0) && (l_trained == 0))
     {
       if (l_xvals.empty())
 	{
@@ -3084,8 +3112,23 @@ void NNet::l_trainrprop(int numlatent, double tmax, int mode)
     }
   else
     {
-      cout<<"Number of latent parameters must be greater than 1"<<endl;
-      return;
+      if (numlatent < 0)
+	{
+	  cout<<"Number of latent parameters must be greater than 1"<<endl;
+	  return;
+	}
+      else
+	{
+	  for(int i = 0; i < numfiles; i++)
+	    {
+	      l_tdels[i][0].fill(0);
+	      for (int j = 0; j < l_numhids[i] + 1; j++)
+		{
+		  l_tgrads[i][j].fill(0);
+		  l_tdels[i][j+1].fill(0);
+		}
+	    }
+	}
     }
   vector<double> lrates;
   for(int i = 0; i < numfiles; i++)
@@ -3732,5 +3775,6 @@ void NNet::l_trainrprop(int numlatent, double tmax, int mode)
 	    }
 	}
     }
+  l_trained++;
   return;
 }
