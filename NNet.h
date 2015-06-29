@@ -34,7 +34,7 @@ class NNet
   void l_load(string Qmatrix = " ", int lmode = 0, string input_file = " ", string sep1 = ",");
   void l_init(int numfiles, int iclassreg, int inumcores, int igradd, int icostfunc, int iepoch = -1);
   void l_trainnet(int numlatent, int mode = 0);
-  void l_testnet(string filename, string netname);
+  //void l_testnet(string filename, string netname);
   void l_savenet(void);
   void test_data(string in_filename, string out_filename, string netname, string sep = ",");
   void l_trainrprop(int numlatent,double tmax = 1.0, int mode = 0);
@@ -89,7 +89,7 @@ class NNet
   vector< vector<mat> > l_velocity;
   vector< vector<mat> > l_checkgrads;
   vector< vector<mat> > l_checkdels;
-  vector<std::thread> l_bpthreads;
+  //vector<std::thread> l_bpthreads;
   mat lat_checkgrads;
   vector< vector<int> > Q_mat; 
   int file_nlines;
@@ -143,7 +143,7 @@ class NNet
   vector< vector<mat> > dels;
   vector<mat> checkgrads;
   vector<mat> checkdels;
-  vector<std::thread> bpthreads;
+  //vector<std::thread> bpthreads;
 }; 
 
 //0:sigmoid, 1:tanh, 2:reclinear, 3:tanh + 0.1x
@@ -166,7 +166,6 @@ BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(NNet_overloads10,train_rprop,0,2)
 
 BOOST_PYTHON_MODULE(NNet)
 {
-  PyEval_InitThreads();
   using namespace boost::python;
   class_<NNet>("NNet")
     .def("init",&NNet::init,NNet_overloads0())
@@ -178,11 +177,11 @@ BOOST_PYTHON_MODULE(NNet)
     .def("savenet", &NNet::savenet)
     .def("loadnet",&NNet::loadnet)
     .def("snets",&NNet::snets)
+    .def("l_savenet",&NNet::l_savenet)
+    //.def("l_testnet",&NNet::l_testnet)
     .def("l_load",&NNet::l_load,NNet_overloads5())
     .def("l_init",&NNet::l_init,NNet_overloads6())
     .def("l_trainnet", &NNet::l_trainnet,NNet_overloads7())
-    .def("l_testnet", &NNet::l_testnet)
-    .def("l_savenet", &NNet::l_savenet)
     .def("test_data", &NNet::test_data,NNet_overloads8())
     .def("l_trainrprop",&NNet::l_trainrprop,NNet_overloads9())
     .def("train_rprop",&NNet::train_rprop,NNet_overloads10())

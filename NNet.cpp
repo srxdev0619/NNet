@@ -5,7 +5,7 @@
 #include<cctype>
 #include"NNet.h"
 #include<cmath>
-#include<thread>
+//#include<thread>
 //#include<boost/python.hpp>
 
 using namespace std;
@@ -532,6 +532,7 @@ void NNet::backprop(mat x, mat y, int gpos)
 void NNet::train_net(double lrate, int mode)
 {
   int trainmode = mode;
+  vector<thread> bpthreads;
   if ((trainmode != 0) && (trainmode != 1))
     {
       cout<<"Training mode can only be 0 or 1"<<endl;
@@ -773,6 +774,7 @@ void NNet::train_net(double lrate, int mode)
 void NNet::train_rprop(int mode,double tmax)
 {
   int trainmode = mode;
+  vector<thread> bpthreads;
   double rmax = tmax;
   if ((trainmode != 0) && (trainmode != 1))
     {
@@ -2325,6 +2327,7 @@ void NNet::l_backprop(mat x, mat y, int gpos)
 void NNet::l_trainnet(int numlatent, int mode)
 {
   int trainmode = mode;
+  vector<thread> l_bpthreads;
   if ((trainmode != 0) && (trainmode != 1))
     {
       cout<<"Training mode can only be 0 or 1"<<endl;
@@ -3035,6 +3038,7 @@ void NNet::l_trainrprop(int numlatent, double tmax, int mode)
 {
   int trainmode = mode;
   int rprop = 0;
+  vector<thread> l_bpthreads;
   //int revertp = 0;
   //int revertb = 0;
   double rmax = tmax;
