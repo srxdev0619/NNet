@@ -734,7 +734,6 @@ void NNet::train_net(double lrate, int mode)
 		    }
 		  else
 		    {
-		      lrate = lrate;
 		      ecount = ecount - 1;
 		    }
 		  //cout<<lrate<<endl;
@@ -1308,6 +1307,11 @@ void NNet::test_net(int testmode)
      {
        start = validate;
        stop = train+validate;
+     }
+   else
+     {
+       cout<<"Testmode can only be 0 or 1!"<<endl;
+       abort();
      }
   int passed = 0;
   int error = 0;
@@ -2870,7 +2874,7 @@ void NNet::test_data(string in_filename, string out_filename, string netname, st
 	    {
 	      num = num + temp.at(i);
 	    }
-	  else if ((temp.at(i) == sep.at(0)))
+	  else if (temp.at(i) == sep.at(0))
 	    {
 	      xvals.push_back(stod(num,NULL));
 	      num = "";
@@ -2916,7 +2920,7 @@ void NNet::test_data(string in_filename, string out_filename, string netname, st
 	    {
 	      num = num + temp.at(i);
 	    }
-	  else if ((temp.at(i) == sep.at(0)))
+	  else if (temp.at(i) == sep.at(0))
 	    {
 	      yvals.push_back(stod(num,NULL));
 	      num = "";
