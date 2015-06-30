@@ -92,7 +92,6 @@ class NNet
   vector< vector<mat> > l_velocity;
   vector< vector<mat> > l_checkgrads;
   vector< vector<mat> > l_checkdels;
-  //vector<std::thread> l_bpthreads;
   vector< vector<mat> > l_bestparams;
   vector< vector<mat> > l_bestbias;
   mat lat_checkgrads;

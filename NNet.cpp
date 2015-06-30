@@ -3783,11 +3783,33 @@ void NNet::l_funcarch(void)
 {
   if (checkinit == 0)
     {
-      return;
+      for(int i = 0; i < numfiles; i++)
+	{
+	  string temp;
+	  cout<<"Please enter the desired function architecture for "<<filenames[i]<<": ";
+	  cin>>temp;
+	  if (!l_funclayer[i].empty())
+	    {
+	      l_funclayer[i].clear();
+	    }
+	  int lent = temp.length();
+	  for(int j = 0; j < lent; j++)
+	    {
+	      if (isdigit(temp[j]) == 0)
+		{
+		  cout<<"Invalid input!"<<endl;
+		  abort();
+		}
+	      else
+		{
+		  l_funclayer[i].push_back(stoi(temp[j]));
+		}
+	    }
+	}
     }
   else
     {
-      cout<<"Please initiliaze the neural network!"<<endl;
+      cout<<"Please initialize the neural network!"<<endl;
       abort();
     }
   return;
