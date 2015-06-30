@@ -39,9 +39,12 @@ class NNet
   void test_data(string in_filename, string out_filename, string netname, string sep = ",");
   void l_trainrprop(int numlatent,double tmax = 1.0, int mode = 0);
   void testvoids(int mode);
+  void l_funcarch(void);
   //DEBUG METHODS!!//
   //mat* feed_forward(mat x);
  private:
+  int trained;
+  int l_trained;
   //Variables
   // stores the architecture of hidden layers in a array
   //vector<int> paracheck;
@@ -90,6 +93,8 @@ class NNet
   vector< vector<mat> > l_checkgrads;
   vector< vector<mat> > l_checkdels;
   //vector<std::thread> l_bpthreads;
+  vector< vector<mat> > l_bestparams;
+  vector< vector<mat> > l_bestbias;
   mat lat_checkgrads;
   vector< vector<int> > Q_mat; 
   int file_nlines;

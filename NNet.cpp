@@ -3778,3 +3778,17 @@ void NNet::l_trainrprop(int numlatent, double tmax, int mode)
   l_trained++;
   return;
 }
+
+void NNet::l_funcarch(void)
+{
+  if (checkinit == 0)
+    {
+      return;
+    }
+  else
+    {
+      cout<<"Please initiliaze the neural network!"<<endl;
+      abort();
+    }
+  return;
+}
