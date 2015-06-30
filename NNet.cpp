@@ -3009,10 +3009,6 @@ void NNet::testvoids(int mode)
 		  double err = 0;
 		  for(int t = 0; t < lent; t++)
 		    {
-		      if((mode == 1) && (j == 0)) //temporary just to check why the NN is performing so badly on volume
-			{
-			  cout<<l_activ[j][l_numhid + 1][t]<<" "<<l_yvals[j][i][t]<<endl;
-			}
 		      err = err + pow(l_activ[j][l_numhid + 1][t] - l_yvals[j][i][t],2);
 		    }
 		  LRMSE[j] = LRMSE[j] + err;
@@ -3034,14 +3030,18 @@ void NNet::testvoids(int mode)
 	    }
 	}
     }
-  //cout<<"COUNT: "<<count<<endl;
+  //cout<<"COUNT: "<<count<<endl; 
   for(int i = 0; i < numfiles; i++)
     {
       //cout<<"COUNTS: "<<counts[i]<<endl;
       double frmse = sqrt(LRMSE[i]/(double)counts[i]);
-      cout<<"RMSE of file "<<filenames[i]<<" is: "<<frmse<<endl;
+      //cout<<"RMSE of file "<<filenames[i]<<" is: "<<frmse<<endl;
       double averr = (sqrt(LRMSE[i])/(double)counts[i]);
-      cout<<"Error of file "<<filenames[i]<<" is: "<<averr<<endl;
+      if (mode == 1)
+	{
+	  cout<<"Error of file "<<filenames[i]<<" is: "<<averr<<endl;
+	  cout<<"RMSE of file "<<filenames[i]<<" is: "<<frmse<<endl;
+	}
     }
 }
 
@@ -3191,7 +3191,6 @@ void NNet::l_trainrprop(int numlatent, double tmax, int mode)
 			  for(int j = 0; j < numlatent; j++)
 			    {
 			      l_xvals[i](j,0) = l_xvals[i](j,0) - (lrates[q]/4.0)*l_tdels[q][0](j,0);
-			      cout<<"LATENT PARAMS: "<<l_xvals[i](j,0)<<endl;
 			      l_tdels[q][0].fill(0); //Doing this is the textbook method but commenting this out just works much much better
 			    }
 			}
@@ -3401,7 +3400,7 @@ void NNet::l_trainrprop(int numlatent, double tmax, int mode)
 	  cout<<((double)i/(double)epoch)*100<<"%\n";
 	  if (trainmode == 1)
 	    {
-	      testvoids(0);
+	      testvoids(1);
 	      cout<<endl;
 	    }
 	  int step = 0;
@@ -3742,10 +3741,8 @@ void NNet::l_trainrprop(int numlatent, double tmax, int mode)
 			}
 		      else
 			{
-			  //cout<<"HERE!"<<endl;
 			  l_params[q][j] = l_params[q][j] - l_tgrads[q][j];
 			  l_bias[q][j] = l_bias[q][j] - l_tdels[q][j+1];
-			  //cout<<l_tgrads[q][j]<<endl<<endl;
 			  l_tgrads[q][j].fill(0.0);
 			  l_tdels[q][j+1].fill(0.0);
 			}
