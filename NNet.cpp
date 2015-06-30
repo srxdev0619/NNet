@@ -529,7 +529,7 @@ void NNet::backprop(mat x, mat y, int gpos)
 
 
 //Train the neural network
-void NNet::train_net(double lrate, int mode)
+void NNet::train_net(double lrate, int mode, int verbose)
 {
   int trainmode = mode;
   vector<thread> bpthreads;
@@ -700,11 +700,11 @@ void NNet::train_net(double lrate, int mode)
 	      ttemp_rmse = temp_rmse;
 	      if (loadmode == 1)
 		{
-		  test_file(loadfile);
+		  test_file(loadfile,verbose);
 		}
 	      else 
 		{
-		  test_net(1);
+		  test_net(1,verbose);
 		}
 	      if (min_rmse == -1)
 		{
@@ -776,7 +776,7 @@ void NNet::train_net(double lrate, int mode)
 
 
 //Trains the network accroding to RPROP
-void NNet::train_rprop(int mode,double tmax)
+void NNet::train_rprop(int mode, int verbose,double tmax)
 {
   int trainmode = mode;
   vector<thread> bpthreads;
@@ -1247,11 +1247,11 @@ void NNet::train_rprop(int mode,double tmax)
 	      ttemp_rmse = temp_rmse;
 	      if (loadmode == 1)
 		{
-		  test_file(loadfile);
+		  test_file(loadfile,verbose);
 		}
 	      else 
 		{
-		  test_net(1);
+		  test_net(1,verbose);
 		}
 	      if (min_rmse == -1)
 		{
@@ -1260,7 +1260,7 @@ void NNet::train_rprop(int mode,double tmax)
 	      if (temp_rmse > ttemp_rmse)
 		{
 		  //double kappa = 0.001;
-		  cout<<"RMSE reversed!\n";
+		  //cout<<"RMSE reversed!\n";
 		  //cout<<lrate<<endl;
 		  if (ecount <= 0)
 		    {
@@ -1301,7 +1301,7 @@ void NNet::train_rprop(int mode,double tmax)
 
 
 //Test the network
-void NNet::test_net(int testmode)
+void NNet::test_net(int testmode, int verbose)
 {
    if (loadmode != 0)
     {
@@ -1375,7 +1375,7 @@ void NNet::test_net(int testmode)
 	  //double error = 0;
 	  for (int j = 0; j < lent; j++)
 	    {
-	      cout<<ydata[i](j,0)<<" "<<activ[0][numhid+1](j,0)<<"\n";
+	      //cout<<ydata[i](j,0)<<" "<<activ[0][numhid+1](j,0)<<"\n";
 	      error = error + pow(ydata[i](j,0) - activ[0][numhid + 1](j,0),2);
 	      if (abs(activ[0][numhid + 1](j,0) - ydata[i](j,0)) <= 0.1)
 		{
@@ -1397,11 +1397,17 @@ void NNet::test_net(int testmode)
   //cout<<passed<<"\n";
   double hitrate = ((double)passed/(double)(stop-start))*100;
   double RMSE = sqrt((error/(double)(stop-start)));
-  cout<<"The accuracy is: "<<hitrate<<"%\n";
+  if (verbose == 1)
+    {
+      cout<<"The accuracy is: "<<hitrate<<"%\n";
+    }
   if(classreg == 1)
     {
       temp_rmse = RMSE;
-      cout<<"RMSE: "<<RMSE<<endl;
+      if (verbose == 1)
+	{
+	  cout<<"RMSE: "<<RMSE<<endl;
+	}
     }
   else
     {
@@ -1610,7 +1616,7 @@ void NNet::snets(void)
 
 
 //This method is to test data of a specific file
-void NNet::test_file(string filename,int ffmode, string sep1, string sep2)
+void NNet::test_file(string filename,int verbose,int ffmode, string sep1, string sep2)
 {
   if (loadmode != 1)
     {
@@ -1752,14 +1758,20 @@ void NNet::test_file(string filename,int ffmode, string sep1, string sep2)
 	}
       //counter++;
     }
-  cout<<passed<<"\n";
   double hitrate = ((double)passed/(double)numlines)*100;
-  cout<<"The accuracy is: "<<hitrate<<"%\n";
+  if (verbose == 1)
+    {
+      cout<<passed<<endl;
+      cout<<"The accuracy is: "<<hitrate<<"%\n";
+    }
   double RMSE = sqrt((error/(double)numlines));
   if(classreg == 1)
     {
       temp_rmse = RMSE;
-      cout<<"RMSE: "<<RMSE<<endl;
+      if (verbose == 1)
+	{
+	  cout<<"RMSE: "<<RMSE<<endl;
+	}
     }
   else
     {
@@ -2537,36 +2549,20 @@ void NNet::l_trainnet(int numlatent, int mode)
       for (int i = 0; i < epoch; i++)
 	{
 	  cout<<((double)i/(double)epoch)*100<<"%\n";
-	  testvoids(0);
-	  cout<<endl;
+	  if (trainmode == 1)
+	    {
+	      testvoids(0);
+	      cout<<endl;
+	    }
 	  int step = 0;
 	  for (int lr = 0; lr < numfiles; lr++)
 	    {
-	      lrates[lr] = 0.99*lrates[lr];
+	      lrates[lr] = 0.999*lrates[lr];
 	    }
-	  //lrate = 0.999*lrate;
-	  //if (classreg == 0)
-	  //{
-	  //  if ( i < (epoch/2.0))
-	  //	{
-	  //	  beta = 0.2;
-	  //	}
-	  //  else
-	  //	{
-	  //	  beta = 0.9;
-	  //	}
-	  //}
 	  while (step < l_train)
 	    {
 	      int k = step;
 	      step = min(step + 10,l_train);
-	      //if (classreg == 0)
-	      //{
-	      //  for (int yt = 0; yt < numhid + 1; yt++)
-	      //    {
-	      //      l_params.at(yt) = l_params.at(yt) + beta*l_velocity.at(yt);
-	      //    }
-	      //}
 	      for(;k < step; k++)
 		{
 		  if (!l_bpthreads.empty())
@@ -2645,14 +2641,6 @@ void NNet::l_trainnet(int numlatent, int mode)
 			}
 		    }
 		}
-	      //if (classreg == 0)
-	      //{
-	      //  for (int yt = 0; yt < numhid + 1; yt++)
-	      //    {
-	      //      l_params.at(yt) = l_params.at(yt) - beta*l_velocity.at(yt);
-	      //      l_velocity.at(yt) = beta*l_velocity.at(yt) - (lrate/(double)1000.0)*tgrads.at(yt);
-	      //    }
-	      //}
 	      double kappa = 0.001;
 	      for(int q = 0; q < numfiles; q++)
 		{
