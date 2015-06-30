@@ -3802,7 +3802,9 @@ void NNet::l_funcarch(void)
 		}
 	      else
 		{
-		  l_funclayer[i].push_back(stoi(temp[j]));
+		  string num = "";
+		  num = num + temp.at(j);
+		  l_funclayer[i].push_back(stoi(num,NULL));
 		}
 	    }
 	}
