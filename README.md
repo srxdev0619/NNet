@@ -31,36 +31,35 @@ NNet.load(string filename, int imode = 0, string sep1 = ",", string sep2 = " ")
 This method is used to load the file into the network. The filename is specified by `filename`. If `imode` is 0 then the data is split into training, test and validation data, if `imode` is 1 then the entire file is used for training. This method assumes that the file contains both input and output data where each component of the input and output vector is seperated by the string specified in `sep1` and the input and output vectors are seperated by the string specified in sep2. By default sep1 is a comma (",") and sep2 is a space (" ").
 
 
-
 ```cpp
-NNet.train_net(double lrate, int mode = 0)
+NNet.train_net(double lrate, int mode = 0, int verbose = 0)
 ```
 
-This methods trains the neural network using standard backpropogation, the learning rate is specified by the variable `lrate`. If `mode` is set to 1 it gives the current accuracy and/or RMSE of the neural net on the given data set.
-
-
-
-```cpp
-NNet.train_rprop(int mode = 0, double tmax = 15.0)
-```
-
-This method trains the neural network using resilient backpropogation. If `mode` is set to 1 it prints the RMSE and/or accuracy as the net is trained. The variable `tmax` sets an upper bound on the amount by which a particular weight can change
+This methods trains the neural network using standard backpropogation, the learning rate is specified by the variable `lrate`. If `mode` is set to 1 it gives the current accuracy and/or RMSE of the neural net on the given data set. If verbose equals 1 more detailed output is produced.
 
 
 
 ```cpp
-NNet.test_file(string filename, int ffmode = -1, string sep1 = ",", string sep2 = " ")
+NNet.train_rprop(int mode = 0, int verbose = 0, double tmax = 15.0)
 ```
 
-This method allows the user to upload a file to test the neural network against. `ffmode` is best left to its value of -1, else non-optimal weights and biases would be used to test the file.
+This method trains the neural network using resilient backpropogation. If `mode` is set to 1 it prints the RMSE and/or accuracy as the net is trained. The variable `tmax` sets an upper bound on the amount by which a particular weight can change. If verbose equals 1 more detailed output is produced.
 
 
 
 ```cpp
-NNet.test_net(int mode = 0)
+NNet.test_file(string filename, int verbose = 0,int ffmode = -1, string sep1 = ",", string sep2 = " ")
 ```
 
-This method allows the user to test thier neural network on the file uploaded in load. If `mode` is set to one then the neural network is tested on the validation set.
+This method allows the user to upload a file to test the neural network against. `ffmode` is best left to its value of -1, else non-optimal weights and biases would be used to test the file. If verbose equals 1 more detailed output is produced.
+
+
+
+```cpp
+NNet.test_net(int mode = 0, int verbose = 0)
+```
+
+This method allows the user to test thier neural network on the file uploaded in load. If `mode` is set to one then the neural network is tested on the validation set. If verbose equals 1 more detailed output is produced.
 
 
 
