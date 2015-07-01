@@ -546,19 +546,16 @@ void NNet::train_net(double lrate, int mode, int verbose)
   int ecount = 0;
   if (gradd == 0)
     {
-      //int stop = 0;
       double beta = 0.2;
       for (int k = 0; k < epoch; k++)
 	{
 	  cout<<(double)k*100/(double)epoch<<"%\n";
 	  for (int i = 0; i < train; i++)
 	    {
-	      //cout<<train;
 	      for (int l = 0; l < numhid + 1; l++)
 		{
 		  params.at(l) = params.at(l) + beta*velocity.at(l);
 		}
-	      //TODO:IMPLEMENT PARALLELIZATION ASAP!
 	      backprop(xdata[i],ydata[i],-1);
 	      for (int q = 0; q < numcores; q++)
 		{
@@ -584,7 +581,6 @@ void NNet::train_net(double lrate, int mode, int verbose)
   else if (gradd == 1)
     {
       cout<<"Initializing Stochastic Gradient Descent\n";
-      //min_rmse = -1;
       vector<int> idxs;
       for (int i = 0; i < train; i++)
 	{
@@ -625,14 +621,12 @@ void NNet::train_net(double lrate, int mode, int verbose)
 	      int ncore = min(numcores,10);
 	      for(;k < step; k = k + ncore)
 		{
-		  //cout<<idxs.at(k)<<endl;
 		  if (!bpthreads.empty())
 		    {
 		      bpthreads.clear();
 		    }
 		  for (int t = 0; t < ncore; t++)
 		    {
-		      //backprop(xdata.at(idxs.at(k+t)),ydata.at(idxs.at(k+t)),-1);
 		      if (numcores > 1)
 			{ bpthreads.push_back(std::thread(&NNet::parallel_bp,this,idxs.at(k+t),t));
 			}
@@ -709,9 +703,6 @@ void NNet::train_net(double lrate, int mode, int verbose)
 		}
 	      if (temp_rmse > ttemp_rmse)
 		{
-		  //double kappa = 0.001;
-		  //cout<<"RMSE reversed!\n";
-		  //cout<<lrate<<endl;
 		  if (ecount <= 0)
 		    {
 		      double kappa = 0.001;
@@ -896,7 +887,7 @@ void NNet::train_rprop(int mode, int verbose,double tmax)
 			{
 			  if (checkdels[q](rw,cl)*tdels[q](rw,cl) > 0)
 			    {
-			      //push up weight
+			      //push up bias
 			      if (rprop == 1)
 				{
 				  double sign = tdels[q](rw,cl)/abs(tdels[q](rw,cl));
@@ -916,7 +907,7 @@ void NNet::train_rprop(int mode, int verbose,double tmax)
 			    }
 			  else if ((checkdels[q](rw,cl)*tdels[q](rw,cl) < 0))
 			    {
-			      //pushdown weight
+			      //pushdown bias
 			      if (rprop == 1)
 				{
 				  double sign = tdels[q](rw,cl)/abs(tdels[q](rw,cl));
@@ -997,7 +988,6 @@ void NNet::train_rprop(int mode, int verbose,double tmax)
 	      int ncore = min(numcores,10);
 	      for(;k < step; k = k + ncore)
 		{
-		  //cout<<idxs.at(k)<<endl;
 		  if (!bpthreads.empty())
 		    {
 		      bpthreads.clear();
@@ -1112,7 +1102,7 @@ void NNet::train_rprop(int mode, int verbose,double tmax)
 			    {
 			      if (checkdels[q](rw,cl)*tdels[q](rw,cl) > 0)
 				{
-				  //push up weight
+				  //push up bias
 				  if (rprop == 1)
 				    {
 				      double sign = tdels[q](rw,cl)/abs(tdels[q](rw,cl));
@@ -1132,7 +1122,7 @@ void NNet::train_rprop(int mode, int verbose,double tmax)
 				}
 			      else if ((checkdels[q](rw,cl)*tdels[q](rw,cl) < 0))
 				{
-				  //pushdown weight
+				  //pushdown bias
 				  if (rprop == 1)
 				    {
 				      double sign = tdels[q](rw,cl)/abs(tdels[q](rw,cl));
@@ -1219,15 +1209,12 @@ void NNet::train_rprop(int mode, int verbose,double tmax)
 		    }
 		  else
 		    {
-		      //lrate = lrate;
 		      ecount = ecount - 1;
 		    }
-		  //cout<<lrate<<endl;
 		}
 	      if (temp_rmse < min_rmse)
 		{
 		  min_rmse = temp_rmse;
-		  //cout<<"Minima!\n";
 		  if (!best_params.empty())
 		    {
 		      best_params.clear();
@@ -1279,15 +1266,12 @@ void NNet::test_net(int testmode, int verbose)
   int passed = 0;
   int error = 0;
   for (int i = start; i < stop; i++)
-  //for (int i = 0; i < train; i++)
     {
       feed_forward(xdata[i],-1);
-      //cout<<bias[numhid]<<endl;
       if (classreg == 0)
 	{
 	  int max = 0;
 	  int idx = 0;
-	  //int lent = numlayers[numhid + 1];
 	  int lent = activ[0][numhid + 1].n_rows;
 	  int alent = numhid + 1;
 	  for (int j = 0; j < lent; j++)
@@ -1321,12 +1305,9 @@ void NNet::test_net(int testmode, int verbose)
       else
 	{
 	  int chk = 1;
-	  //int lent = numlayers[numhid + 1];
 	  int lent = activ[0][numhid + 1].n_rows;
-	  //double error = 0;
 	  for (int j = 0; j < lent; j++)
 	    {
-	      //cout<<ydata[i](j,0)<<" "<<activ[0][numhid+1](j,0)<<"\n";
 	      error = error + pow(ydata[i](j,0) - activ[0][numhid + 1](j,0),2);
 	      if (abs(activ[0][numhid + 1](j,0) - ydata[i](j,0)) <= 0.1)
 		{
@@ -1343,9 +1324,7 @@ void NNet::test_net(int testmode, int verbose)
 	      passed++;
 	    }
 	}
-      //counter++;
     }
-  //cout<<passed<<"\n";
   double hitrate = ((double)passed/(double)(stop-start))*100;
   double RMSE = sqrt((error/(double)(stop-start)));
   if (verbose == 1)
@@ -1685,12 +1664,9 @@ void NNet::test_file(string filename,int verbose,int ffmode, string sep1, string
       else
 	{
 	  int chk = 1;
-	  //int lent = numlayers[numhid + 1];
 	  int lent = activ[0][numhid + 1].n_rows;
-	  //double error = 0;
 	  for (int j = 0; j < lent; j++)
 	    {
-	      //cout<<testydata[i](j,0)<<" "<<activ[0][numhid+1](j,0)<<"\n";
 	      error = error + pow(testydata[i](j,0) - activ[0][numhid + 1](j,0),2);
 	      if (abs(activ[0][numhid + 1](j,0) - testydata[i](j,0)) <= 0.1)
 		{
@@ -1707,7 +1683,6 @@ void NNet::test_file(string filename,int verbose,int ffmode, string sep1, string
 	      passed++;
 	    }
 	}
-      //counter++;
     }
   double hitrate = ((double)passed/(double)numlines)*100;
   if (verbose == 1)
