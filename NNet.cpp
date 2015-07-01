@@ -1718,14 +1718,9 @@ void NNet::test_file(string filename,int verbose,int ffmode, string sep1, string
 
 
 //
-void NNet::ls_init(int num_files, string nconfig, int iclassreg, int igradd, int icostfunc, int iepoch)
+void NNet::ls_init(string nconfig, int iclassreg, int igradd, int icostfunc, int iepoch)
 {
-  if (num_files <= 0)
-    {
-      cout<<"Number of files must be non-zero and positive!"<<endl;
-      return;
-    }
-  numfiles = num_files;
+  numfiles = 0;
   if (!l_numlayers.empty())
     {
       l_numlayers.clear();
@@ -1750,11 +1745,13 @@ void NNet::ls_init(int num_files, string nconfig, int iclassreg, int igradd, int
 	{
 	  nconfigs.push_back(num);
 	  num = "";
+	  numfiles++;
 	}
       else if (i == (nlent -1))
 	{
 	  nconfigs.push_back(num);
 	  num = "";
+	  numfiles++;
 	}
       else
 	{
@@ -1852,7 +1849,7 @@ void NNet::ls_init(int num_files, string nconfig, int iclassreg, int igradd, int
 
 
 
-
+//A
 void NNet::ls_load(string outputfiles, string Qmatrix, int lmode, string input_file, string sep1)
 {
   if (checkinit == -1)
@@ -1866,6 +1863,7 @@ void NNet::ls_load(string outputfiles, string Qmatrix, int lmode, string input_f
       filenames.clear();
     }
   int nlent = outputfiles.length();
+  int fcount = 0;
   for (int i = 0; i < nlent; i++)
     {
       string num = "";
@@ -1874,11 +1872,23 @@ void NNet::ls_load(string outputfiles, string Qmatrix, int lmode, string input_f
 	{
 	  filenames.push_back(num);
 	  num = "";
+	  fcount++;
+	}
+      else if (i == (nlent - 1))
+	{
+	  filenames.push_back(num);
+	  num = "";
+	  fcount++;
 	}
       else
 	{
 	  num = num + outputfiles[i];
 	}
+    }
+  if (fcount != numfiles)
+    {
+      cout<<"Incorrect number of files given!"<<endl;
+      abort();
     }
   for (int i = 0; i < numfiles; i++)
     {
