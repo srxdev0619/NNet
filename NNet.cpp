@@ -3879,13 +3879,13 @@ void NNet::l_testall(void)
       //cout<<"RMSE of file "<<filenames[i]<<" is: "<<frmse<<endl;
       double averr = (sqrt(TRRMSE[i])/(double)trcounts[i]);
       double tsrmse = sqrt(TSRMSE[i]/(double)tscounts[i]);
-      double tserror = sqrt(TSRMSE[i]/(double)tscounts[i]);
+      double tserror = sqrt(TSRMSE[i])/(double)tscounts[i];
       cout<<"Training error"<<endl;
       cout<<"Error of file "<<filenames[i]<<" is: "<<averr<<endl;
       cout<<"RMSE of file "<<filenames[i]<<" is: "<<frmse<<endl;
       if (qmat == 1)
 	{
-	  cout<<"\nTest Error"<<endl;
+	  cout<<"Test Error"<<endl;
 	  cout<<"Error of file "<<filenames[i]<<" is: "<<tserror<<endl;
 	  cout<<"RMSE of file "<<filenames[i]<<" is: "<<tsrmse<<endl;
 	}
