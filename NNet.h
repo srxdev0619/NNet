@@ -31,6 +31,8 @@ class NNet
   void loadnet(string netname);
   //Print saved nets
   void snets(void);
+  void ls_init(int num_files, string nconfig, int iclassreg, int igradd, int icostfunc, int iepoch = 1);
+  void ls_load(string ouputfiles, string Qmatrix = " ", int lmode = 0, string input_file = " ", string sep1 = ",");
   void l_load(string Qmatrix = " ", int lmode = 0, string input_file = " ", string sep1 = ",");
   void l_init(int numfiles, int iclassreg, int inumcores, int igradd, int icostfunc, int iepoch = 1);
   void l_trainnet(int numlatent, int mode = 0);
