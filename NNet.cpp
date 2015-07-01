@@ -138,7 +138,7 @@ void NNet::init(string sconfig, int iclassreg, int inumcores, int igradd, int ic
       cout<<"Invalid network configuration!\n";
       return;
     }
-  if ((gradd == 1) && (epoch <= 0))
+  if (epoch <= 0)
     {
       cout<<"Invalid configuration\nPlease choose the number of epochs to be trained";
       return;
@@ -549,9 +549,9 @@ void NNet::train_net(double lrate, int mode, int verbose)
     {
       //int stop = 0;
       double beta = 0.2;
-      for (int k = 0; k < 5; k++)
+      for (int k = 0; k < epoch; k++)
 	{
-	  cout<<k<<"%\n";
+	  cout<<(double)k*100/(double)epoch<<"%\n";
 	  for (int i = 0; i < train; i++)
 	    {
 	      //cout<<train;
@@ -797,9 +797,9 @@ void NNet::train_rprop(int mode, int verbose,double tmax)
   if (gradd == 0)
     {
       //int stop = 0;
-      for (int k = 0; k < 5; k++)
+      for (int k = 0; k < epoch; k++)
 	{
-	  cout<<k<<"%\n";
+	  cout<<(double)k*100/(double)epoch<<"%\n";
 	  for (int i = 0; i < train; i++)
 	    {
 	      //cout<<train;
@@ -1859,7 +1859,7 @@ void NNet::l_init(int num_files, int iclassreg, int inumcores, int igradd, int i
       cout<<"Invalid network configuration!\n";
       return;
     }
-  if ((gradd == 1) && (epoch <= 0))
+  if (epoch <= 0)
     {
       cout<<"Invalid configuration\nPlease choose the number of epochs to be trained";
       return;
@@ -2425,7 +2425,7 @@ void NNet::l_trainnet(int numlatent, int mode)
     {
       //int stop = 0;
       //double beta = 0.2;
-      for (int k = 0; k < 5; k++)
+      for (int k = 0; k < epoch; k++)
 	{
 	  cout<<k<<"%\n";
 	  for (int i = 0; i < train; i++)
@@ -2551,7 +2551,7 @@ void NNet::l_trainnet(int numlatent, int mode)
 	  cout<<((double)i/(double)epoch)*100<<"%\n";
 	  if (trainmode == 1)
 	    {
-	      testvoids(0);
+	      l_testall();
 	      cout<<endl;
 	    }
 	  int step = 0;
@@ -3012,9 +3012,9 @@ void NNet::testvoids(int mode)
 		      err = err + pow(l_activ[j][l_numhid + 1][t] - l_yvals[j][i][t],2);
 		    }
 		  LRMSE[j] = LRMSE[j] + err;
-		  counts[j]++;
+		  counts[j]++; 
 		}
-	    }
+	    } 
 	  else
 	    {
 	       l_feedforward(l_xvals[i],j);
@@ -3130,9 +3130,14 @@ void NNet::l_trainrprop(int numlatent, double tmax, int mode)
     {
       //int stop = 0;
       //double beta = 0.2;
-      for (int k = 0; k < 5; k++)
+      for (int k = 0; k < epoch; k++)
 	{
-	  cout<<k<<"%\n";
+	  cout<<(double)k*100.0/(double)epoch<<"%\n";
+	  if (trainmode == 1)
+	    {
+	      l_testall();
+	      cout<<endl;
+	    }
 	  for (int i = 0; i < train; i++)
 	    {
 	      int threadcount = 0;
@@ -3143,12 +3148,12 @@ void NNet::l_trainrprop(int numlatent, double tmax, int mode)
 		      if (Q_mat[i][j] == 1)
 			{
 			  l_bpthreads.push_back(std::thread(&NNet::l_parallelbp,this,i,j));
-		      threadcount++;
+			  threadcount++;
 			}
 		    }
 		  else
 		    {
-		    l_bpthreads.push_back(std::thread(&NNet::l_parallelbp,this,i,j));
+		      l_bpthreads.push_back(std::thread(&NNet::l_parallelbp,this,i,j));
 		      threadcount++;
 		    }
 		}
@@ -3400,7 +3405,7 @@ void NNet::l_trainrprop(int numlatent, double tmax, int mode)
 	  cout<<((double)i/(double)epoch)*100<<"%\n";
 	  if (trainmode == 1)
 	    {
-	      testvoids(1);
+	      l_testall();
 	      cout<<endl;
 	    }
 	  int step = 0;
@@ -3417,7 +3422,6 @@ void NNet::l_trainrprop(int numlatent, double tmax, int mode)
 		  int threadcount = 0;
 		  for (int t = 0; t < numfiles; t++)
 		    {
-		      //cout<<"Q-val: "<<Q_mat[idxs.at(k)][t]<<endl;
 		      if(qmat == 1)
 			{
 			  if (Q_mat[idxs.at(k)][t] == 1)
@@ -3756,7 +3760,6 @@ void NNet::l_trainrprop(int numlatent, double tmax, int mode)
 		{
 		  rprop++;
 		}
-	      //cout<<"RPROP: "<<rprop<<endl;
 	    }
 	}
     }
@@ -3801,3 +3804,91 @@ void NNet::l_funcarch(void)
     }
   return;
 }
+
+
+
+//
+void NNet::l_testall(void)
+{
+  vector<double> TRRMSE;
+  vector<double> TSRMSE;
+  vector<int> tscounts;
+  vector<int> trcounts;
+  for (int i = 0; i < numfiles; i++)
+    {
+      TRRMSE.push_back(0);
+      TSRMSE.push_back(0);
+      tscounts.push_back(0);
+      trcounts.push_back(0);
+    }
+  //int count = 0;
+  for(int i = 0; i < l_train; i++)
+    {
+      for (int j = 0; j < numfiles; j++)
+	{
+	  int l_numhid;
+	  if(qmat == 1)
+	    {
+	      if (Q_mat[i][j] == 0)
+		{
+		  l_feedforward(l_xvals[i],j);
+		  l_numhid = l_numhids[j];
+		  int lent = l_numlayers[j][l_numhid + 1];
+		  double err = 0;
+		  for(int t = 0; t < lent; t++)
+		    {
+		      err = err + pow(l_activ[j][l_numhid + 1][t] - l_yvals[j][i][t],2);
+		    }
+		  TSRMSE[j] = TSRMSE[j] + err;
+		  tscounts[j]++; 
+		}
+	      else
+		{
+		  l_feedforward(l_xvals[i],j);
+		  l_numhid = l_numhids[j];
+		  int lent = l_numlayers[j][l_numhid + 1];
+		  double err = 0;
+		  for(int t = 0; t < lent; t++)
+		    {
+		      err = err + pow(l_activ[j][l_numhid + 1][t] - l_yvals[j][i][t],2);
+		    }
+		  TRRMSE[j] = TRRMSE[j] + err;
+		  trcounts[j]++; 
+		}
+	    } 
+	  else
+	    {
+	       l_feedforward(l_xvals[i],j);
+	       l_numhid = l_numhids[j];
+	       int lent = l_numlayers[j][l_numhid + 1];
+	       double err = 0;
+	       for(int t = 0; t < lent; t++)
+		 {
+		   err = err + pow(l_activ[j][l_numhid + 1][t] - l_yvals[j][i][t],2);
+		 }
+	       TRRMSE[j] = TRRMSE[j] + err;
+	       trcounts[j]++;
+	    }
+	}
+    }
+  //cout<<"COUNT: "<<count<<endl; 
+  for(int i = 0; i < numfiles; i++)
+    {
+      //cout<<"COUNTS: "<<counts[i]<<endl;
+      double frmse = sqrt(TRRMSE[i]/(double)trcounts[i]);
+      //cout<<"RMSE of file "<<filenames[i]<<" is: "<<frmse<<endl;
+      double averr = (sqrt(TRRMSE[i])/(double)trcounts[i]);
+      double tsrmse = sqrt(TSRMSE[i]/(double)tscounts[i]);
+      double tserror = sqrt(TSRMSE[i]/(double)tscounts[i]);
+      cout<<"Training error"<<endl;
+      cout<<"Error of file "<<filenames[i]<<" is: "<<averr<<endl;
+      cout<<"RMSE of file "<<filenames[i]<<" is: "<<frmse<<endl;
+      if (qmat == 1)
+	{
+	  cout<<"\nTest Error"<<endl;
+	  cout<<"Error of file "<<filenames[i]<<" is: "<<tserror<<endl;
+	  cout<<"RMSE of file "<<filenames[i]<<" is: "<<tsrmse<<endl;
+	}
+    }
+}
+

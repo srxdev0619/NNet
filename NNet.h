@@ -15,7 +15,7 @@ class NNet
   //Constructor
   NNet();
   //To change the default configuration of the neural Network
-  void init(string sconfig, int iclassreg, int inumcores, int igradd, int icostfunc, int iepoch = -1);
+  void init(string sconfig, int iclassreg, int inumcores, int igradd, int icostfunc, int iepoch = 1);
   //Stores the activation function of each layer
   void func_arch(string flayer);
   //Load data
@@ -32,7 +32,7 @@ class NNet
   //Print saved nets
   void snets(void);
   void l_load(string Qmatrix = " ", int lmode = 0, string input_file = " ", string sep1 = ",");
-  void l_init(int numfiles, int iclassreg, int inumcores, int igradd, int icostfunc, int iepoch = -1);
+  void l_init(int numfiles, int iclassreg, int inumcores, int igradd, int icostfunc, int iepoch = 1);
   void l_trainnet(int numlatent, int mode = 0);
   //void l_testnet(string filename, string netname);
   void l_savenet(void);
@@ -67,6 +67,7 @@ class NNet
   void l_feedforward(mat x, int gpos);
   void l_parallelbp(int index, int pos);
   void lsavenets(string netname,int index);
+  void l_testall(void);
   vector<mat> params;
   vector<mat> bias;
   vector<mat> velocity;
