@@ -1907,7 +1907,6 @@ void NNet::ls_load(string outputfiles, string Qmatrix, int lmode, string input_f
   int numlines = 0;
   for (int j = 0; j < numfiles; j++)
     {
-      cout<<filenames.at(j)<<endl; //DEBUGGING
       ifstream ldata(filenames.at(j));
       if (!ldata.is_open())
 	{
