@@ -224,6 +224,7 @@ void NNet::load(string filename,int imode, string sep1, string sep2)
   if (!ldata.is_open())
     {
       cout<<"Error opening file!\n";
+      abort();
       return;
     }
   loadfile = filename;
@@ -1731,11 +1732,11 @@ void NNet::ls_init(string nconfig, int iclassreg, int igradd, int icostfunc, int
     }
   vector<string> nconfigs;
   int nlent = nconfig.length();
+  string num = "";
   for (int i = 0; i < nlent; i++)
     {
       string cmm = ",";
       string septr = "-";
-      string num = "";
       if ((nconfig[i] != cmm[0]) && (nconfig.at(i) != septr[0]) && (isdigit(nconfig.at(i)) == 0))
 	{
 	  cout<<"Invalid configuration!"<<endl;
@@ -1749,6 +1750,7 @@ void NNet::ls_init(string nconfig, int iclassreg, int igradd, int icostfunc, int
 	}
       else if (i == (nlent -1))
 	{
+	  num = num + nconfig[i];
 	  nconfigs.push_back(num);
 	  num = "";
 	  numfiles++;
@@ -1864,9 +1866,9 @@ void NNet::ls_load(string outputfiles, string Qmatrix, int lmode, string input_f
     }
   int nlent = outputfiles.length();
   int fcount = 0;
+  string num = "";
   for (int i = 0; i < nlent; i++)
     {
-      string num = "";
       string cmma = ",";
       if(outputfiles[i] == cmma[0])
 	{
@@ -1876,6 +1878,7 @@ void NNet::ls_load(string outputfiles, string Qmatrix, int lmode, string input_f
 	}
       else if (i == (nlent - 1))
 	{
+	  num = num + outputfiles[i];
 	  filenames.push_back(num);
 	  num = "";
 	  fcount++;
@@ -1904,6 +1907,7 @@ void NNet::ls_load(string outputfiles, string Qmatrix, int lmode, string input_f
   int numlines = 0;
   for (int j = 0; j < numfiles; j++)
     {
+      cout<<filenames.at(j)<<endl; //DEBUGGING
       ifstream ldata(filenames.at(j));
       if (!ldata.is_open())
 	{
@@ -1973,7 +1977,6 @@ void NNet::ls_load(string outputfiles, string Qmatrix, int lmode, string input_f
       //LOADING QMATRIX
       int qnumlines = 0;
       qmat = 1;
-      cout<<"QMAT: "<<qmat<<endl;
       ifstream qdata(Qmatrix);
       if (!qdata.is_open())
 	{
@@ -2327,7 +2330,6 @@ void NNet::l_load(string Qmatrix, int lmode, string input_file, string sep1)
       //LOADING QMATRIX
       int qnumlines = 0;
       qmat = 1;
-      cout<<"QMAT: "<<qmat<<endl;
       ifstream qdata(Qmatrix);
       if (!qdata.is_open())
 	{
