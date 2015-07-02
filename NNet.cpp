@@ -531,6 +531,11 @@ void NNet::backprop(mat x, mat y, int gpos)
 //Train the neural network
 void NNet::train_net(double lrate, int mode, int verbose)
 {
+  if (ydata.empty())
+    {
+      cout<<"Please load files into the network!"<<endl;
+      abort();
+    }
   int trainmode = mode;
   vector<thread> bpthreads;
   if ((trainmode != 0) && (trainmode != 1))
@@ -765,6 +770,11 @@ void NNet::train_net(double lrate, int mode, int verbose)
 //Trains the network accroding to RPROP
 void NNet::train_rprop(int mode, int verbose,double tmax)
 {
+  if (ydata.empty())
+    {
+      cout<<"Please load files into the network!"<<endl;
+      abort();
+    }
   int trainmode = mode;
   vector<thread> bpthreads;
   double rmax = tmax;
@@ -2644,6 +2654,11 @@ void NNet::l_backprop(mat x, mat y, int gpos)
 //Training weights and latent parameters
 void NNet::l_trainnet(int numlatent, int mode)
 {
+  if (l_yvals.empty())
+    {
+      cout<<"Please load the files first!"<<endl;
+      abort();
+    }
   int trainmode = mode;
   vector<thread> l_bpthreads;
   if ((trainmode != 0) && (trainmode != 1))
@@ -3346,6 +3361,11 @@ void NNet::testvoids(int mode)
 //RPROP for latent parameter learning
 void NNet::l_trainrprop(int numlatent, double tmax, int mode)
 {
+    if (l_yvals.empty())
+    {
+      cout<<"Please load the files first!"<<endl;
+      abort();
+    }
   int trainmode = mode;
   int rprop = 0;
   vector<thread> l_bpthreads;
