@@ -1781,17 +1781,12 @@ void NNet::ls_init(string nconfig, int iclassreg, int igradd, int icostfunc, int
 	    }
 	  else if (sconfig.at(i) == '-')
 	    {
-	      //config = (int *)realloc(config,(count + 1)*sizeof(int));
-	      //config[count] = stoi(num,NULL);
-	      //count++;
 	      l_numlayers[j].push_back(stoi(num,NULL));
 	      num = "";
 	    }
 	  else if ((i == lent - 1) && (sconfig.at(i) != '-'))
 	    {
 	      num = num + sconfig.at(i);
-	      //config = (int *)realloc(config,(count + 1)*sizeof(int));
-	      //config[count] = stoi(num,NULL);
 	      l_numlayers[j].push_back(stoi(num,NULL));
 	    }
 	}
@@ -1830,7 +1825,6 @@ void NNet::ls_init(string nconfig, int iclassreg, int igradd, int icostfunc, int
 	    }
 	}
     }
-  //numhid = count;
   vector<mat> tr;
   l_dels.push_back(tr);
   l_tdels.push_back(tr);
@@ -1903,7 +1897,6 @@ void NNet::ls_load(string outputfiles, string Qmatrix, int lmode, string input_f
   string decp = ".";
   string minussb = "-";
   string empt = " ";
-  //int templines = 0;
   int numlines = 0;
   for (int j = 0; j < numfiles; j++)
     {
@@ -1915,7 +1908,6 @@ void NNet::ls_load(string outputfiles, string Qmatrix, int lmode, string input_f
 	  return;
 	}
       string temp;
-      //templines = numlines;
       numlines = 0;
       //parse file input
       int tempcount = 0;
@@ -1938,7 +1930,6 @@ void NNet::ls_load(string outputfiles, string Qmatrix, int lmode, string input_f
 	    {
 	      if  ((isdigit(temp.at(i)) == 0) && (temp.at(i) != decp.at(0)) && (temp.at(i) != minussb.at(0)) && (temp.at(i) != sep1.at(0)))
 		{
-		  //cout<<temp.at(i)<<endl;
 		  cout << "Invalid file format!\n";
 		  return;
 		}
@@ -1968,7 +1959,6 @@ void NNet::ls_load(string outputfiles, string Qmatrix, int lmode, string input_f
       ldata.close();
     }
   file_nlines = numlines;
-  //cout<<numlines<<endl;
   
   //LOADING INPUT FILE
   if (input_file.at(0) != empt.at(0))
@@ -2037,7 +2027,6 @@ void NNet::ls_load(string outputfiles, string Qmatrix, int lmode, string input_f
 	  cout<<"Error opening file!\n";
 	  return;
 	}
-      //string temp;
       int xnumlines = 0;
       int tempcx = 0;
       int countx = 0;
@@ -2057,10 +2046,8 @@ void NNet::ls_load(string outputfiles, string Qmatrix, int lmode, string input_f
 	  vector<double> xvals;
 	  for(int i = 0; i < lent; i++)
 	    {
-	      //cout<<sep1.at(0);
 	      if  ((isdigit(temp.at(i)) == 0) && (temp.at(i) != decp.at(0)) && (temp.at(i) != minussb.at(0)) && (temp.at(i) != sep1.at(0)))
 		{
-		  //cout<<temp.at(i)<<endl;
 		  cout << "Invalid file format!\n";
 		  abort();
 		  return;
@@ -2083,7 +2070,6 @@ void NNet::ls_load(string outputfiles, string Qmatrix, int lmode, string input_f
 		  countx++;
 		}
 	    }
-	  //cout<<xvals.size();
 	  mat mtempx(xvals);
 	  l_xvals.push_back(mtempx);
 	  xnumlines++;
@@ -2139,7 +2125,6 @@ void NNet::l_init(int num_files, int iclassreg, int inumcores, int igradd, int i
       vector<int> itn;
       l_numlayers.push_back(itn);
       cout<<"Please enter the configuration of NN "<<to_string(j + 1)<<": ";
-      //int count = 0;
       cin>>sconfig;
       int lent = sconfig.length();
       string num = "";
@@ -2157,17 +2142,12 @@ void NNet::l_init(int num_files, int iclassreg, int inumcores, int igradd, int i
 	    }
 	  else if (sconfig.at(i) == '-')
 	    {
-	      //config = (int *)realloc(config,(count + 1)*sizeof(int));
-	      //config[count] = stoi(num,NULL);
-	      //count++;
 	      l_numlayers[j].push_back(stoi(num,NULL));
 	      num = "";
 	    }
 	  else if ((i == lent - 1) && (sconfig.at(i) != '-'))
 	    {
 	      num = num + sconfig.at(i);
-	      //config = (int *)realloc(config,(count + 1)*sizeof(int));
-	      //config[count] = stoi(num,NULL);
 	      l_numlayers[j].push_back(stoi(num,NULL));
 	    }
 	}
@@ -2207,7 +2187,6 @@ void NNet::l_init(int num_files, int iclassreg, int inumcores, int igradd, int i
 	    }
 	}
     }
-  //numhid = count;
   vector<mat> tr;
   l_dels.push_back(tr);
   l_tdels.push_back(tr);
@@ -2256,7 +2235,6 @@ void NNet::l_load(string Qmatrix, int lmode, string input_file, string sep1)
   string decp = ".";
   string minussb = "-";
   string empt = " ";
-  //int templines = 0;
   int numlines = 0;
   for (int j = 0; j < numfiles; j++)
     {
@@ -2268,7 +2246,6 @@ void NNet::l_load(string Qmatrix, int lmode, string input_file, string sep1)
 	  return;
 	}
       string temp;
-      //templines = numlines;
       numlines = 0;
       //parse file input
       int tempcount = 0;
@@ -2291,7 +2268,6 @@ void NNet::l_load(string Qmatrix, int lmode, string input_file, string sep1)
 	    {
 	      if  ((isdigit(temp.at(i)) == 0) && (temp.at(i) != decp.at(0)) && (temp.at(i) != minussb.at(0)) && (temp.at(i) != sep1.at(0)))
 		{
-		  //cout<<temp.at(i)<<endl;
 		  cout << "Invalid file format!\n";
 		  return;
 		}
@@ -2321,7 +2297,6 @@ void NNet::l_load(string Qmatrix, int lmode, string input_file, string sep1)
       ldata.close();
     }
   file_nlines = numlines;
-  //cout<<numlines<<endl;
   
   //LOADING INPUT FILE
   if (input_file.at(0) != empt.at(0))
@@ -2390,7 +2365,6 @@ void NNet::l_load(string Qmatrix, int lmode, string input_file, string sep1)
 	  cout<<"Error opening file!\n";
 	  return;
 	}
-      //string temp;
       int xnumlines = 0;
       int tempcx = 0;
       int countx = 0;
@@ -2410,10 +2384,8 @@ void NNet::l_load(string Qmatrix, int lmode, string input_file, string sep1)
 	  vector<double> xvals;
 	  for(int i = 0; i < lent; i++)
 	    {
-	      //cout<<sep1.at(0);
 	      if  ((isdigit(temp.at(i)) == 0) && (temp.at(i) != decp.at(0)) && (temp.at(i) != minussb.at(0)) && (temp.at(i) != sep1.at(0)))
 		{
-		  //cout<<temp.at(i)<<endl;
 		  cout << "Invalid file format!\n";
 		  abort();
 		  return;
@@ -2436,7 +2408,6 @@ void NNet::l_load(string Qmatrix, int lmode, string input_file, string sep1)
 		  countx++;
 		}
 	    }
-	  //cout<<xvals.size();
 	  mat mtempx(xvals);
 	  l_xvals.push_back(mtempx);
 	  xnumlines++;
