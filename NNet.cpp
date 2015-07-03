@@ -797,6 +797,11 @@ void NNet::train_rprop(int mode, int verbose,double tmax)
       cout<<"Please load files into the network!"<<endl;
       abort();
     }
+  if (!checkgrads.empty())
+    {
+      checkgrads.clear();
+      checkdels.clear();
+    }
   int trainmode = mode;
   vector<thread> bpthreads;
   double rmax = tmax;
@@ -3342,6 +3347,7 @@ void NNet::test_data(string in_filename, string out_filename, string netname, st
       cout<<"The amount of input data is different from the amount of output data, line numbers in both files do not match!"<<endl;
       return;
     }
+  loadnet(netname);
   double error = 0;
   for(int i = 0; i < xnumlines; i++)
     {
@@ -3424,10 +3430,22 @@ void NNet::testvoids(int mode)
 //RPROP for latent parameter learning
 void NNet::l_trainrprop(int numlatent, double tmax, int mode)
 {
-    if (l_yvals.empty())
+  if (l_yvals.empty())
     {
       cout<<"Please load the files first!"<<endl;
       abort();
+    }
+  for (int fl = 0; fl < numfiles; fl++)
+    {
+      int l_numhid = l_numhids[fl];
+      for(int q = 0; q < l_numhid + 1; q++)
+	{
+	  if (!l_checkgrads[fl].empty())
+	    {
+	      l_checkgrads[fl].clear();
+	      l_checkdels[fl].clear();
+	    }
+	}
     }
   int trainmode = mode;
   int rprop = 0;
