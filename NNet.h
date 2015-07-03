@@ -38,6 +38,7 @@ class NNet
   void l_trainnet(int numlatent, int mode = 0);
   //void l_testnet(string filename, string netname);
   void l_savenet(void);
+  void ls_savenet(string names, string in_name);
   void test_data(string in_filename, string out_filename, string netname, string sep = ",");
   void l_trainrprop(int numlatent,double tmax = 1.0, int mode = 0);
   void testvoids(int mode);
