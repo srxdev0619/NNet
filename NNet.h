@@ -51,7 +51,7 @@ class NNet
   //Variables
   // stores the architecture of hidden layers in a array
   //vector<int> paracheck;
-  int *config;
+  vector<int> config;
   int classreg;
   int numcores;
   int func;
