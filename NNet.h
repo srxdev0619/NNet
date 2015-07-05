@@ -43,8 +43,6 @@ class NNet
   void l_trainrprop(int numlatent,double tmax = 1.0, int mode = 0);
   void testvoids(int mode);
   void l_funcarch(void);
-  //DEBUG METHODS!!//
-  //mat* feed_forward(mat x);
  private:
   int trained;
   int l_trained;
@@ -140,6 +138,7 @@ class NNet
   double tanh_dr(double x);
   double softplus(double x);
   double rec_D(double x);
+  double softplus_D(double x);
   //Stores files
  
   int loadmode;
