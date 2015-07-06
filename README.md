@@ -1,4 +1,4 @@
-###NNet is a neural network library written in C++. 
+###NNet is a neural network library written in C++.
 A list of methods available to the NNet object and their brief descriptions is given below:
 
 
@@ -48,10 +48,10 @@ This method trains the neural network using resilient backpropogation. If `mode`
 
 
 ```cpp
-NNet.test_file(string filename, int verbose = 0,int ffmode = -1, string sep1 = ",", string sep2 = " ")
+NNet.test_file(string filename, int verbose = 0, string netname = " ", string sep1 = ",", string sep2 = " ")
 ```
 
-This method allows the user to upload a file to test the neural network against. `ffmode` is best left to its value of -1, else non-optimal weights and biases would be used to test the file. If verbose equals 1 more detailed output is produced.
+This method allows the user to upload a file to test the neural network against. The variable `netname` is used to specify the neural network against which to test the file, if left to the default value the file is tested against an already loaded nerual network. If verbose equals 1 more detailed output is produced.
 
 
 
@@ -84,4 +84,3 @@ NNet.snets(void)
 ```
 
 View all saved neural networks in the given directory.
-
