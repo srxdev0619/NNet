@@ -1531,7 +1531,6 @@ void NNet::loadnet(string netname)
       chk = 0;
       int lent = temp.length();
       int chk1 = 0;
-      int lent1 = netname.length();
       string tempname = "";
       for (int j = 0; j < lent; j++)
 	{
@@ -1556,7 +1555,7 @@ void NNet::loadnet(string netname)
     }
   if (chk == 0)
     {
-      cout<<netname<<" not found!\n";
+      cout<<netname<<" not found!"<<endl;
       return;
     }
   else
@@ -1604,13 +1603,8 @@ void NNet::snets(void)
 
 
 //This method is to test data of a specific file
-void NNet::test_file(string filename,int verbose,int ffmode, string sep1, string sep2)
+void NNet::test_file(string filename,int verbose, string netname, string sep1, string sep2)
 {
-  if (loadmode != 1)
-    {
-      cout<<"Please use test_net() to test this neural net!\n";
-      return;
-    }
   ifstream ldata(filename);
   if (!ldata.is_open())
     {
@@ -1621,7 +1615,24 @@ void NNet::test_file(string filename,int verbose,int ffmode, string sep1, string
   int numlines = 0;
   string decp = ".";
   string minussb = "-";
-  int feedforwardmode = ffmode;
+  int feedforwardmode;
+  string empt = " ";
+  if (netname != empt)
+    {
+      loadnet(netname);
+      feedforwardmode = -1;
+    }
+  else
+    {
+      if (!best_params.empty())
+	{
+	  feedforwardmode = -2;
+	}
+      else
+	{
+	  feedforwardmode = -1;
+	}
+    }
   //parse file input
   while (getline(ldata,temp))
     {
@@ -1721,47 +1732,33 @@ void NNet::test_file(string filename,int verbose,int ffmode, string sep1, string
 	}
       else
 	{
-	  int chk = 1;
 	  int lent = activ[0][numhid + 1].n_rows;
 	  for (int j = 0; j < lent; j++)
 	    {
 	      error = error + pow(testydata[i](j,0) - activ[0][numhid + 1](j,0),2);
-	      if (abs(activ[0][numhid + 1](j,0) - testydata[i](j,0)) <= 0.1)
-		{
-		  continue;
-		}
-	      else
-		{
-		  chk = 0;
-		  break;
-		}
-	    }
-	  if (chk)
-	    {
-	      passed++;
 	    }
 	}
     }
-  double hitrate = ((double)passed/(double)numlines)*100;
-  if (verbose == 1)
-    {
-      cout<<passed<<endl;
-      cout<<"The accuracy is: "<<hitrate<<"%\n";
-    }
-  double RMSE = sqrt((error/(double)numlines));
   if(classreg == 1)
     {
+      double RMSE = sqrt((error/(double)numlines));
       temp_rmse = RMSE;
       if (verbose == 1)
 	{
-	  double averror =  (sqrt(error)/(double)numlines);
+	  double averror =  (sqrt(error))/(double)numlines;
 	  cout<<"RMSE: "<<RMSE<<endl;
 	  cout<<"Average error: "<<averror<<endl;
 	}
     }
   else
     {
+      double hitrate = ((double)passed/(double)numlines)*100;
       temp_rmse = hitrate;
+      if (verbose == 1)
+	{
+	  cout<<passed<<endl;
+	  cout<<"The accuracy is: "<<hitrate<<"%"<<endl;
+	}
     }
   return;
 }
