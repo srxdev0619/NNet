@@ -4048,16 +4048,20 @@ void NNet::l_trainrprop(int numlatent, double tmax, int mode)
       random_shuffle(idxs.begin(),idxs.end());
       for (int i = 0; i < epoch; i++)
 	{
-	  if (trainmode == 0)
+	  if (i == 0)
 	    {
-	      pc = ((double)i/(double)epoch)*100;
-	      cout<<"\r"<<pc<<"%"<<flush;
-	    }
-	  if (trainmode == 1)
-	    {
-	      cout<<((double)i/(double)epoch)*100<<"%"<<endl;
-	      l_testall();
-	      cout<<endl;
+	      cout<<"Initial error"<<endl;
+	      if (trainmode == 0)
+		{
+		  pc = ((double)i/(double)epoch)*100;
+		  cout<<"\r"<<pc<<"%"<<flush;
+		}
+	      if (trainmode == 1)
+		{
+		  cout<<((double)i/(double)epoch)*100<<"%"<<endl;
+		  l_testall();
+		  cout<<endl;
+		}
 	    }
 	  int step = 0;
 	  while (step < l_train)
@@ -4398,6 +4402,17 @@ void NNet::l_trainrprop(int numlatent, double tmax, int mode)
 		{
 		  rprop++;
 		}
+	    }
+	  if (trainmode == 0)
+	    {
+	      pc = ((double)i/(double)epoch)*100;
+	      cout<<"\r"<<pc<<"%"<<flush;
+	    }
+	  if (trainmode == 1)
+	    {
+	      cout<<((double)i/(double)epoch)*100<<"%"<<endl;
+	      l_testall();
+	      cout<<endl;
 	    }
 	}
     }
