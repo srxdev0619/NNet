@@ -3819,7 +3819,6 @@ void NNet::l_trainrprop(int numlatent, double tmax, int mode)
 		{
 		  l_bpthreads[j].join();
 		}
-	      //cout<<"THERE!"<<i<<endl;
 	      for (int q = 0; q < numfiles; q++)
 		{
 		  if (qmat == 1)
