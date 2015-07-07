@@ -4365,7 +4365,6 @@ void NNet::l_trainrprop(int numlatent, double tmax, int mode)
 					  double temp;
 					  temp = 0.1*0.5;
 					  temp = max(temp,0.000001);
-					  temp = 0.001;
 					  l_checkgrads[fl][q](rw,cl) = sign*(temp);
 					}
 				      else
