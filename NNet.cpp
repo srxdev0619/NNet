@@ -582,7 +582,14 @@ void NNet::train_net(double lrate, int mode, int verbose)
       double beta = 0.2;
       for (int k = 0; k < epoch; k++)
 	{
-	  cout<<"\r"<<(double)k*100/(double)epoch<<"%"<<endl;
+	  if (verbose == 0)
+	    {
+	      cout<<"\r"<<((double)k/(double)epoch)*100<<"%"<<flush;
+	    }
+	  else
+	    {
+	      cout<<((double)k/(double)epoch)*100<<"%"<<endl;
+	    }
 	  for (int i = 0; i < train; i++)
 	    {
 	      for (int l = 0; l < numhid + 1; l++)
@@ -608,6 +615,75 @@ void NNet::train_net(double lrate, int mode, int verbose)
 	      velocity.at(l) = beta*velocity.at(l) - (lrate/(double)train)*tgrads.at(l);
 	      params.at(l) = params.at(l) + velocity.at(l);
 	      bias[l] = bias[l] - (lrate/(double)train)*tdels[l];
+	    }
+	   if (trainmode == 1)
+	    {
+	      ttemp_rmse = temp_rmse;
+	      if (loadmode == 1)
+		{
+		  testfile(loadfile,verbose);
+		}
+	      else 
+		{
+		  test_net(1,verbose);
+		}
+	      if (min_rmse == -1)
+		{
+		  min_rmse = temp_rmse;
+		}
+	      if (temp_rmse > ttemp_rmse)
+		{
+		  if (ecount <= 0)
+		    {
+		      double kappa = 0.001;
+		      for (int j = 0; j < numhid + 1; j++)
+		      {
+			  //the below only applies if regression is going.....
+		        if (classreg == 1)
+		          {
+		            if (funclayer.at(j) == 3)
+			      {
+				kappa = 0.099;
+			      }
+		            else
+			      {
+				kappa = 0.001;
+			      }
+		          }
+		        params.at(j) = params.at(j) + (lrate/(double)100.0)*tgrads.at(j) + kappa*params.at(j);
+		        bias.at(j) = bias.at(j) + (lrate/(double)100.0)*tdels.at(j);
+		      }
+		      lrate = 0.99*lrate;
+		      ecount = (int)((double)epoch/(double)10);
+		    }
+		  else
+		    {
+		      ecount = ecount - 1;
+		    }
+		}
+	      if (temp_rmse < min_rmse)
+		{
+		  min_rmse = temp_rmse;
+		  if (!best_params.empty())
+		    {
+		      best_params.clear();
+		    }
+		  if(!best_bias.empty())
+		    {
+		      best_bias.clear();
+		    }
+		  if (!best_velocity.empty())
+		    {
+		      best_velocity.clear();
+		    }
+		  for (int r = 0; r < numhid + 1; r++)
+		    {
+		      best_params.push_back(params.at(r));
+		      best_bias.push_back(bias.at(r));
+		      best_velocity.push_back(velocity.at(r));
+		    }
+		}
+	      cout<<endl;
 	    }
 	}
     }
@@ -829,13 +905,18 @@ void NNet::train_rprop(int mode, int verbose,double tmax)
       tdels[i].fill(0);
     }
   int rprop = 0;
-  double ttemp_rmse;
-  int ecount = 0;
   if (gradd == 0)
     {
       for (int k = 0; k < epoch; k++)
 	{
-	  cout<<"\r"<<(double)k*100/(double)epoch<<"%"<<flush;
+	  if (verbose == 0)
+	    {
+	      cout<<"\r"<<((double)k/(double)epoch)*100<<"%"<<flush; 
+	    }
+	  else
+	    {
+	      cout<<((double)k/(double)epoch)*100<<"%"<<endl;
+	    }
 	  for (int i = 0; i < train; i++)
 	    {
 	      for (int t = 0; t < numcores; t++)
@@ -1018,6 +1099,41 @@ void NNet::train_rprop(int mode, int verbose,double tmax)
 	  else
 	    {
 	      rprop++;
+	    }
+	  //Below takes extra measures so that the network converges
+	  if (trainmode == 1)
+	    {
+	      if (loadmode == 1)
+		{
+		  testfile(loadfile,verbose);
+		}
+	      else 
+		{
+		  test_net(1,verbose);
+		}
+	      if (min_rmse == -1)
+		{
+		  min_rmse = temp_rmse;
+		}
+	      if (temp_rmse < min_rmse)
+		{
+		  min_rmse = temp_rmse;
+		  if (!best_params.empty())
+		    {
+		      best_params.clear();
+		    }
+		  if(!best_bias.empty())
+		    {
+		      best_bias.clear();
+		    }
+		  for (int r = 0; r < numhid + 1; r++)
+		    {
+		      best_params.push_back(params.at(r));
+		      best_bias.push_back(bias.at(r));
+		      best_velocity.push_back(velocity.at(r));
+		    }
+		}
+	      cout<<endl;
 	    }
 	}
     }
@@ -1247,7 +1363,6 @@ void NNet::train_rprop(int mode, int verbose,double tmax)
 	  //Below takes extra measures so that the network converges
 	  if (trainmode == 1)
 	    {
-	      ttemp_rmse = temp_rmse;
 	      if (loadmode == 1)
 		{
 		  testfile(loadfile,verbose);
@@ -1259,17 +1374,6 @@ void NNet::train_rprop(int mode, int verbose,double tmax)
 	      if (min_rmse == -1)
 		{
 		  min_rmse = temp_rmse;
-		}
-	      if (temp_rmse > ttemp_rmse)
-		{
-		  if (ecount <= 0)
-		    {
-		      ecount = (int)((double)epoch/(double)10);
-		    }
-		  else
-		    {
-		      ecount = ecount - 1;
-		    }
 		}
 	      if (temp_rmse < min_rmse)
 		{
@@ -2979,13 +3083,9 @@ void NNet::l_trainnet(int numlatent, int mode)
     {
       for (int k = 0; k < epoch; k++)
 	{
-	  if (trainmode == 0)
+	  if (k == 0 && (trainmode == 1))
 	    {
-	      cout<<"\r"<<((double)k/(double)epoch)*100<<"%"<<flush;
-	    }
-	  if (trainmode == 1)
-	    {
-	      cout<<((double)k/(double)epoch)*100<<"%\n";
+	      cout<<"Initial error"<<endl;
 	      l_testall();
 	      cout<<endl;
 	    }
@@ -3070,6 +3170,17 @@ void NNet::l_trainnet(int numlatent, int mode)
 		  l_bias[t][l] = l_bias[t][l] - (lrates[t]/(double)train)*l_tdels[t][l];
 		}
 	    }
+	  if (trainmode == 0)
+	    {
+	      double pc = ((double)k/(double)epoch)*100;
+	      cout<<"\r"<<pc<<"%"<<flush;
+	    }
+	  else if (trainmode == 1)
+	    {
+	      cout<<((double)k/(double)epoch)*100<<"%"<<endl;
+	      l_testall();
+	      cout<<endl;
+	    }
 	}
     }
   //TODO:MODIFY SGD FOR LATENT PARAMS
@@ -3084,13 +3195,9 @@ void NNet::l_trainnet(int numlatent, int mode)
       random_shuffle(idxs.begin(),idxs.end());
       for (int i = 0; i < epoch; i++)
 	{
-	  if (trainmode == 0)
+	  if (i == 0 && (trainmode == 1))
 	    {
-	      cout<<"\r"<<((double)i/(double)epoch)*100<<"%"<<flush;
-	    }
-	  if (trainmode == 1)
-	    {
-	      cout<<((double)i/(double)epoch)*100<<"%\n";
+	      cout<<"Initial error"<<endl;
 	      l_testall();
 	      cout<<endl;
 	    }
@@ -3203,6 +3310,17 @@ void NNet::l_trainnet(int numlatent, int mode)
 		      //l_tdels[q].at(j+1).fill(0);    //Doing this is the textbook method but commenting this out just works much much better
 		    }
 		}
+	    }
+	  if (trainmode == 0)
+	    {
+	      double pc = ((double)i/(double)epoch)*100;
+	      cout<<"\r"<<pc<<"%"<<flush;
+	    }
+	  else if (trainmode == 1)
+	    {
+	      cout<<((double)i/(double)epoch)*100<<"%"<<endl;
+	      l_testall();
+	      cout<<endl;
 	    }
 	}
     }
@@ -3756,14 +3874,11 @@ void NNet::l_trainrprop(int numlatent, double tmax, int mode)
     {
       for (int k = 0; k < epoch; k++)
 	{
-	  if (k == 0)
+	  if (k == 0 && (trainmode == 1))
 	    {
 	      cout<<"Initial error"<<endl;
-	      if (trainmode == 1)
-		{
-		  l_testall();
-		  cout<<endl;
-		}
+	      l_testall();
+	      cout<<endl;
 	    }
 	  for (int i = 0; i < l_train; i++)
 	    {
@@ -4105,7 +4220,7 @@ void NNet::l_trainrprop(int numlatent, double tmax, int mode)
 	      double pc = ((double)k/(double)epoch)*100;
 	      cout<<"\r"<<pc<<"%"<<flush;
 	    }
-	  if (trainmode == 1)
+	  else if (trainmode == 1)
 	    {
 	      cout<<((double)k/(double)epoch)*100<<"%"<<endl;
 	      l_testall();
@@ -4125,14 +4240,11 @@ void NNet::l_trainrprop(int numlatent, double tmax, int mode)
       random_shuffle(idxs.begin(),idxs.end());
       for (int i = 0; i < epoch; i++)
 	{
-	  if (i == 0)
+	  if (i == 0 && (trainmode == 1))
 	    {
 	      cout<<"Initial error"<<endl;
-	      if (trainmode == 1)
-		{
-		  l_testall();
-		  cout<<endl;
-		}
+	      l_testall();
+	      cout<<endl;
 	    }
 	  int step = 0;
 	  while (step < l_train)
