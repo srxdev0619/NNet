@@ -32,8 +32,8 @@ class NNet
   //Print saved nets
   void snets(void);
   void ls_init(string nconfig, int iclassreg, int igradd, int icostfunc, int iepoch = 1);
-  void ls_load(string ouputfiles, string Qmatrix = " ", int lmode = 0, string input_file = " ", string sep1 = ",");
-  void l_load(string Qmatrix = " ", int lmode = 0, string input_file = " ", string sep1 = ",");
+  void ls_load(string ouputfiles, string Qmatrix = " ", string input_file = " ", string sep1 = ",");
+  void l_load(string Qmatrix = " ", string input_file = " ", string sep1 = ",");
   void l_init(int numfiles, int iclassreg, int inumcores, int igradd, int icostfunc, int iepoch = 1);
   void l_trainnet(int numlatent, int mode = 0);
   //void l_testnet(string filename, string netname);
@@ -100,8 +100,6 @@ class NNet
   vector< vector<int> > Q_mat; 
   int file_nlines;
   int l_train;
-  int l_validate;
-  int l_test;
   int numfiles;
   int l_numx;
   int qmat;

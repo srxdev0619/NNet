@@ -2138,7 +2138,7 @@ void NNet::ls_init(string nconfig, int iclassreg, int igradd, int icostfunc, int
 
 
 //A
-void NNet::ls_load(string outputfiles, string Qmatrix, int lmode, string input_file, string sep1)
+void NNet::ls_load(string outputfiles, string Qmatrix, string input_file, string sep1)
 {
   if (checkinit == -1)
     {
@@ -2383,21 +2383,7 @@ void NNet::ls_load(string outputfiles, string Qmatrix, int lmode, string input_f
 	}
       l_numx = countx;
     }
-  if (lmode == 0)
-    {
-      l_test = numlines/5;
-      l_validate = tests;
-      l_train = numlines - tests - validate;
-    }
-  else if(lmode == 1)
-    {
-      l_train = numlines;
-    }
-  else
-    {
-      cout<<"Loading configuration can only be 1 or 0"<<endl;
-      abort();
-    }
+  l_train = numlines;    
   return;
 }
 
@@ -2525,7 +2511,7 @@ void NNet::l_init(int num_files, int iclassreg, int inumcores, int igradd, int i
 
 
 //This is a special load method for latent parameters
-void NNet::l_load(string Qmatrix, int lmode, string input_file, string sep1)
+void NNet::l_load(string Qmatrix, string input_file, string sep1)
 {
   if (checkinit == -1)
     {
@@ -2748,20 +2734,7 @@ void NNet::l_load(string Qmatrix, int lmode, string input_file, string sep1)
 	}
       l_numx = countx;
     }
-  if (lmode == 0)
-    {
-      l_test = numlines/5;
-      l_validate = tests;
-      l_train = numlines - tests - validate;
-    }
-  else if(lmode == 1)
-    {
-      l_train = numlines;
-    }
-  else
-    {
-      cout<<"Loading configuration can only be 1 or 0"<<endl;
-    }
+  l_train = numlines;
   return;
 }
 
