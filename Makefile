@@ -1,5 +1,5 @@
 CC = clang++
-CFLAGS = -Wall -Werror -ggdb -std=c++11
+CFLAGS = -Wall -Werror -ggdb -std=c++11 -O3
 
 TARGET = NNet
 
