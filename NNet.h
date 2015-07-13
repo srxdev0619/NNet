@@ -70,6 +70,7 @@ class NNet
   void lsavenets(string netname,int index);
   void l_testall(int mode = 0);
   void testfile(string filename,int verbose = 0,int ffmode = -1, string sep1 = ",", string sep2 = " ");
+  void ld_backprop(mat x, mat y, int gpos);
   vector<mat> params;
   vector<mat> bias;
   vector<mat> velocity;
@@ -89,7 +90,9 @@ class NNet
   vector< vector<mat> > l_activ;
   vector< vector<mat> > l_sums;
   vector< vector<mat> > l_grads;
+  vector< vector<mat> > ld_grads;
   vector< vector<mat> > l_dels;
+  vector< vector<mat> > ld_dels;
   vector< vector<mat> > l_tgrads;
   vector< vector<mat> > l_tdels;
   vector< vector<mat> > l_velocity;

@@ -2217,13 +2217,16 @@ void NNet::ls_init(string nconfig, int iclassreg, int igradd, int icostfunc, int
     }
   vector<mat> tr;
   l_dels.push_back(tr);
+  ld_dels.push_back(tr); //TEMP: BAD DESIGN !! (Initialize only when will be used!)
   l_tdels.push_back(tr);
   for (int i = 0; i < numfiles; i++)
     {
       l_activ.push_back(tr);
       l_sums.push_back(tr);
       l_grads.push_back(tr);
+      ld_grads.push_back(tr); //TEMP: BAD DESIGN !! (Initialize only when will be used!)
       l_dels.push_back(tr);
+      ld_dels.push_back(tr);  //TEMP: BAD DESIGN !! (Initialize only when will be used!)
       l_tgrads.push_back(tr);
       l_tdels.push_back(tr);
       l_checkgrads.push_back(tr);
@@ -2947,7 +2950,7 @@ void NNet::l_backprop(mat x, mat y, int gpos)
 	{
 	  if (l_funclayer[idx][l_numhid - count] == 0)
 	    { 
-	      derv = activ[idx][l_numhid- i] - (l_activ[idx][l_numhid - i]%l_activ[idx][l_numhid - i]);
+	      derv = l_activ[idx][l_numhid- i] - (l_activ[idx][l_numhid - i]%l_activ[idx][l_numhid - i]);
 	    }
 	  else if (l_funclayer[idx][l_numhid-count] == 1)
 	    {
@@ -4890,3 +4893,111 @@ void NNet::l_testall(int mode)
     }
 }
 
+
+
+//Calculates the second order gradients
+//TODO: DO IT ASAP !!!!!!!
+void NNet::ld_backprop(mat x, mat y, int gpos)
+{
+  int idx;
+  if (gpos == -1)
+    {
+      idx = 0;
+    }
+  else
+    {
+      idx = gpos;
+    }
+  int l_numhid = l_numhids.at(idx);
+  l_feedforward(x,idx);
+  if(!ld_grads[idx].empty())
+    { 
+      ld_grads[idx].clear();
+    }
+  if(!ld_dels[idx].empty())
+    {
+      ld_dels[idx].clear();
+    }
+  if (costfunc == 0)
+    {
+      if (l_funclayer[idx][l_numhid] == 0)
+	{
+	  ld_dels[idx].push_back(2.0*((l_activ[idx][l_numhid+1] - (l_activ.at(idx).at(l_numhid+1)%l_activ.at(idx).at(l_numhid+1)))%(l_activ[idx][l_numhid+1] - (l_activ.at(idx).at(l_numhid+1)%l_activ.at(idx).at(l_numhid+1)))));
+	}
+      else if (l_funclayer[idx][l_numhid] == 1)
+	{
+	  ld_dels[idx].push_back(2.0*((ones<mat>(numlayers[l_numhid+1],1) - l_activ[idx][l_numhid+1]%l_activ[idx][l_numhid+1])%(ones<mat>(numlayers[l_numhid+1],1) - l_activ[idx][l_numhid+1]%l_activ[idx][l_numhid+1])));
+	}
+      else if (l_funclayer[idx][l_numhid] == 2)
+	{
+	  for (int i = 0; i < l_numlayers[idx][l_numhid+1]; i++)
+	    {
+	      l_sums[idx][l_numhid + 1](i,0) = rec_D(l_sums[idx][l_numhid + 1](i,0));
+	    }
+	  ld_dels[idx].push_back(2.0*(l_sums[idx][l_numhid+1]%l_sums[idx][l_numhid+1]));
+	}
+      else if (l_funclayer[idx][l_numhid] == 3)
+	{
+	  for (int i = 0; i < l_numlayers[idx][l_numhid+1]; i++)
+	    {
+	      l_sums[idx][l_numhid + 1](i,0) = tanh_d(l_sums[idx][l_numhid + 1](i,0));
+	    }
+	  ld_dels[idx].push_back(2.0*(l_sums[idx][l_numhid+1]%l_sums[idx][l_numhid+1]));
+	}
+    }
+  else
+    {
+      //TODO: have to complete results for other cost functions
+      return;
+    }
+  int count = 1;
+  for (int i = 0; i < l_numhid + 1; i++)
+    {
+      mat temp;
+      temp = ((l_params[idx][l_numhid - i]%l_params[idx][l_numhid - i]).t())*(ld_dels[idx][i]);
+      mat derv = l_sums[idx][l_numhid - i];
+      if (i < l_numhid)
+	{
+	  if (l_funclayer[idx][l_numhid - count] == 0)
+	    { 
+	      derv = l_activ[idx][l_numhid- i] - (l_activ[idx][l_numhid - i]%l_activ[idx][l_numhid - i]);
+	    }
+	  else if (l_funclayer[idx][l_numhid-count] == 1)
+	    {
+	      int n = l_numlayers[idx][l_numhid - i];
+	      for (int j = 0; j < n; j++)
+		{
+		  derv(j,0) = tanh_dr(derv(j,0));
+		}
+	    }
+	  else if (l_funclayer[idx][l_numhid - count] == 2)
+	    {
+	      int n = l_numlayers[idx][l_numhid - i];
+	      for (int j = 0; j < n; j++)
+		{
+		  derv(j,0) = rec_D(derv(j,0));
+		}
+	    }
+	  else if (l_funclayer[idx][l_numhid-count] == 3)
+	    {
+	      int n = l_numlayers[idx][l_numhid - i];
+	      for (int j = 0; j < n; j++)
+		{
+		  derv(j,0) = tanh_d(derv(j,0));
+		}
+	    }
+	}
+      else
+	{
+	  derv = ones<mat>(l_numlayers[idx][0],1);
+	}
+      temp = temp%(derv%derv);
+      ld_dels[idx].push_back(temp);
+      count++;
+    }
+  for (int i = 0; i < l_numhid + 1; i++)
+    {
+      ld_grads[idx].push_back(ld_dels[idx][i]*((l_activ[idx][l_numhid - i]%l_activ[idx][l_numhid - i]).t()));
+    }
+  return;
+}
