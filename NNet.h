@@ -41,6 +41,7 @@ class NNet
   void ls_savenet(string names, string in_name);
   void test_data(string in_filename, string out_filename, string netname, string sep = ",");
   void l_trainrprop(int numlatent,double tmax = 1.0, int mode = 0, double tol = -1);
+  void ld_trainrprop(int numlatent, double tmax = 1.0, int mode = 0, double tol = -1);
   void testvoids(int mode);
   void l_funcarch(void);
  private:
@@ -71,6 +72,9 @@ class NNet
   void l_testall(int mode = 0);
   void testfile(string filename,int verbose = 0,int ffmode = -1, string sep1 = ",", string sep2 = " ");
   void ld_backprop(mat x, mat y, int gpos);
+  void OBD_init(void);
+  void l_optimalBD(int pos);
+  void ls_optimalBD(void);
   vector<mat> params;
   vector<mat> bias;
   vector<mat> velocity;
@@ -100,6 +104,12 @@ class NNet
   vector< vector<mat> > l_checkdels;
   vector< vector<mat> > l_bestparams;
   vector< vector<mat> > l_bestbias;
+  vector< vector<mat> > l_saliencies;
+  vector< vector<mat> > l_checksals;
+  vector< vector<mat> >ld_tgrads;
+  vector<mat> ld_tdels;
+  vector<mat> ls_saliencies;
+  vector<mat> ls_checksals;
   mat lat_checkgrads;
   vector< vector<int> > Q_mat; 
   int file_nlines;
@@ -107,6 +117,11 @@ class NNet
   int numfiles;
   int l_numx;
   int qmat;
+  int l_numlatent;
+  //int chk_f;
+  //int chk_l;
+  //int chk_rw;
+  //int chk_cl;
   //Learning rate
   //#//long double alpha;
   //Momentum coeff
