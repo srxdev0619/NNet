@@ -5014,7 +5014,7 @@ void NNet::OBD_init(void)
 }
 
 
-
+//TODO:MODIFY TO INCLUDE BIAS
 void NNet::l_optimalBD(int pos)
 {
   int l_numhid = l_numhids[pos];
@@ -5117,6 +5117,7 @@ void NNet::l_optimalBD(int pos)
 }
 
 
+//TODO:MODIFY T
 void NNet::ls_optimalBD(void)
 {
   if (!ls_saliencies.empty())
@@ -5344,10 +5345,6 @@ void NNet::ld_trainrprop(int numlatent, double tmax, int mode, double tol)
 			{
 			  l_bpthreads.push_back(std::thread(&NNet::l_parallelbp,this,i,j));
 			  threadcount++;
-			  if(obd == 0)
-			    {
-			      ls_saliencies.push_back(ones<mat>(l_numx,1));
-			    }
 			}
 		    }
 		  for(int j = 0; j < threadcount; j++)
