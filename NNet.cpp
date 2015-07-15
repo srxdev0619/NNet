@@ -878,7 +878,7 @@ void NNet::train_net(double lrate, int mode, int verbose)
 }
 
 
-void NNet::g_update(int r_prop, double r_max)
+void NNet::update(int r_prop, double r_max)
 {
   double rmax = r_max;
   int rprop = r_prop;
@@ -1081,7 +1081,7 @@ void NNet::train_rprop(int mode, int verbose,double tmax)
 		    }
 		}
 	    }
-	  g_update(rprop,rmax);
+	  update(rprop,rmax);
 	  for (int l = 0; l < numhid + 1; l++)
 	    {
 	      if (rprop == 0)
@@ -1203,7 +1203,7 @@ void NNet::train_rprop(int mode, int verbose,double tmax)
 			}
 		    }
 		}
-	      g_update(rprop,rmax);
+	      update(rprop,rmax);
 	      for (int j = 0; j < numhid + 1; j++)
 		{
 		  if (rprop == 0)
@@ -3879,6 +3879,10 @@ void NNet::l_update(int r_prop, double r_max)
 
 
 
+
+
+
+
 //RPROP for latent parameter learning
 void NNet::l_trainrprop(int numlatent, double tmax, int mode, double tol)
 {
@@ -4160,7 +4164,7 @@ void NNet::l_trainrprop(int numlatent, double tmax, int mode, double tol)
 		  lat_rprop++;
 		}
 	    }
-	  l_update(rprop,rmax);
+	  l_update(rprop,rmax); //updates gradients
 	  for(int t = 0; t < numfiles; t++)
 	    {
 	      int lnumhid = l_numhids[t];
@@ -4419,7 +4423,7 @@ void NNet::l_trainrprop(int numlatent, double tmax, int mode, double tol)
 		      lat_rprop++;
 		    }
 		}
-	      l_update(rprop,rmax);
+	      l_update(rprop,rmax); //updates gradients
 	      for(int q = 0; q < numfiles; q++)
 		{
 		  int lnumhid = l_numhids[q];
