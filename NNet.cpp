@@ -4114,6 +4114,10 @@ void NNet::l_trainrprop(int numlatent, double tmax, int mode, double tol)
   else
     {
       tolcheck = 0;
+      if (tol > 0)
+	{
+	  cout<<"Tolerence values being ignored as number of epoch specified!"<<endl;
+	}
     }
   if (gradd == 0)
     {
@@ -4338,6 +4342,7 @@ void NNet::l_trainrprop(int numlatent, double tmax, int mode, double tol)
 	     if (trainmode == 0)
 		{
 		  cout<<"\r"<<"Epoch No. "<<c_epoch<<flush;
+		  cout<<endl;
 		  l_testall(1);
 		  if (l_error <= tol)
 		    {
@@ -4349,6 +4354,7 @@ void NNet::l_trainrprop(int numlatent, double tmax, int mode, double tol)
 	      else if (trainmode == 1)
 		{
 		  cout<<"\r"<<"Epoch No. "<<c_epoch<<flush;
+		  cout<<endl;
 		  l_testall();
 		  if (l_error <= tol)
 		    {
@@ -4382,7 +4388,7 @@ void NNet::l_trainrprop(int numlatent, double tmax, int mode, double tol)
 	    }
 	  if (tolcheck == 1)
 	    {
-	      i = -2;
+	      i = -5;
 	    }
 	  int step = 0;
 	  while (step < l_train)
@@ -4562,8 +4568,8 @@ void NNet::l_trainrprop(int numlatent, double tmax, int mode, double tol)
 			}
 		      else
 			{
-			  l_params[q][j] = l_params[q][j] - 0.001*(l_tgrads[q][j]/l_checkgrads[q][j]);
-			  l_bias[q][j] = l_bias[q][j] - 0.001*(l_tdels[q][j+1]/l_checkdels[q][j]);
+			  l_params[q][j] = l_params[q][j] - 0.001*(l_tgrads[q][j]/l_checkgrads[q][j]); //0.001 best yet, 0.005 works pretty well too
+			  l_bias[q][j] = l_bias[q][j] - 0.001*(l_tdels[q][j+1]/l_checkdels[q][j]);  //0.001 best yet, 0.005 works pretty well too
 			  l_tgrads[q][j].fill(0.0);
 			  l_tdels[q][j+1].fill(0.0);
 			}
@@ -4597,6 +4603,7 @@ void NNet::l_trainrprop(int numlatent, double tmax, int mode, double tol)
 	      if (trainmode == 0)
 		{
 		  cout<<"\r"<<"Epoch No. "<<c_epoch<<flush;
+		  cout<<endl;
 		  l_testall(1);
 		  if (l_error <= tol)
 		    {
@@ -4608,7 +4615,10 @@ void NNet::l_trainrprop(int numlatent, double tmax, int mode, double tol)
 	      else if (trainmode == 1)
 		{
 		  cout<<"\r"<<"Epoch No. "<<c_epoch<<flush;
+		  cout<<endl;
 		  l_testall();
+		  //cout<<tol<<endl;
+		  cout<<"Total error: "<<l_error<<endl;
 		  if (l_error <= tol)
 		    {
 		      cout<<"Convergence reached!"<<endl;
