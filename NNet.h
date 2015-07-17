@@ -24,7 +24,8 @@ class NNet
   //Train the Nerual Network
   void train_net(double lrate,int mode = 0, int verbose = 0);
   void train_rprop(int mode = 0,int verbose = 0, double tmax = 15.0);
-  void test_net(int testmode = 0, int verbose = 0);
+  void d_trainrprop(int mode = 0,int verbose = 0, double tmax = 15.0);
+  void test_net(int verbose = 0);
   //Save the current weights and biases
   void savenet(string netname);
   //Load saved net
@@ -65,7 +66,9 @@ class NNet
   void feed_forward(mat x, int gpos);
   //Backprop
   void backprop(mat x, mat y, int gpos);
+  void d_backprop(mat x, mat y, int gpos);
   void parallel_bp(int index, int pos);
+  void d_parallelbp(int index, int pos);
   void l_backprop(mat x, mat y, int gpos);
   void l_feedforward(mat x, int gpos);
   void l_parallelbp(int index, int pos);
@@ -76,6 +79,7 @@ class NNet
   void OBD_init(void);
   void l_optimalBD(int pos);
   void ls_optimalBD(void);
+  void optimalBD(void);
   void l_update(int r_prop, double r_max);
   void update(int r_prop, double r_max);
   void l_rmsprop(int r_prop);
@@ -138,7 +142,7 @@ class NNet
   vector<mat> testydata;
   int tests;
   int train;
-  int validate;
+  //int validate;
   int numdata;
   //number of hidden layers
   int numhid;
@@ -166,10 +170,15 @@ class NNet
   int loadmode;
   vector<mat> tgrads;
   vector<mat> tdels;
+  vector<mat> d_tgrads;
+  vector<mat> saliencies;
+  vector<mat> checksals;
   vector< vector<mat> > activ;
   vector< vector<mat> > sums;
   vector< vector<mat> > grads;
   vector< vector<mat> > dels;
+  vector< vector<mat> > d_grads;
+  vector< vector<mat> > d_dels;
   vector<mat> checkgrads;
   vector<mat> checkdels;
   //vector<std::thread> bpthreads;
