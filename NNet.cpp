@@ -688,6 +688,7 @@ void NNet::train_net(double lrate, int mode, int verbose)
   int ecount = 0;
   if (gradd == 0)
     {
+      int cthreads = 0;
       double beta = 0.2;
       for (int k = 0; k < epoch; k++)
 	{
@@ -699,14 +700,34 @@ void NNet::train_net(double lrate, int mode, int verbose)
 	    {
 	      cout<<((double)k/(double)epoch)*100<<"%"<<endl;
 	    }
-	  for (int i = 0; i < train; i++)
+	  for (int i = 0; i < train; i = i + numcores)
 	    {
-	      for (int l = 0; l < numhid + 1; l++)
+	      if (numcores > 1)
 		{
-		  params.at(l) = params.at(l) + beta*velocity.at(l);
+		  if (!bpthreads.empty())
+		    {
+		      bpthreads.clear();
+		      cthreads = 0;
+		    }
+		  for (int t = 0; t < numcores; t++)
+		    {
+		      if ((i+t) < train)
+			{
+			  bpthreads.push_back(std::thread(&NNet::parallel_bp,this,i + t,t));
+			  cthreads++;
+			}
+		    }
+		  for (int t = 0; t < cthreads; t++)
+		    {
+		      bpthreads[t].join();
+		    }
 		}
-	      backprop(xdata[i],ydata[i],-1);
-	      for (int q = 0; q < numcores; q++)
+	      else
+		{
+		  backprop(xdata[i],ydata[i],0);
+		  cthreads = 1;
+		}
+	      for (int q = 0; q < cthreads; q++)
 		{
 		  for (int j = 0; j < numhid + 1; j++)
 		    {
@@ -821,6 +842,7 @@ void NNet::train_net(double lrate, int mode, int verbose)
 	      cout<<((double)i/(double)epoch)*100<<"%"<<endl;
 	    }
 	  int step = 0;
+	  int cthreads = 0;
 	  if (classreg == 0)
 	    {
 	      if ( i < (epoch/2.0))
@@ -849,27 +871,33 @@ void NNet::train_net(double lrate, int mode, int verbose)
 		  if (!bpthreads.empty())
 		    {
 		      bpthreads.clear();
+		      cthreads = 0;
 		    }
 		  for (int t = 0; t < ncore; t++)
 		    {
 		      if (numcores > 1)
 			{ 
-			  bpthreads.push_back(std::thread(&NNet::parallel_bp,this,idxs.at(k+t),t));
+			  if ((k+t) < train)
+			    {
+			      bpthreads.push_back(std::thread(&NNet::parallel_bp,this,idxs.at(k+t),t));
+			      cthreads++;
+			    }
 			}
 		      else
 			{
 			  //Threads create an overhead which is avoided if there is only one core available
-			    backprop(xdata.at(idxs.at(k+t)),ydata.at(idxs.at(k+t)),-1);
+			  backprop(xdata.at(idxs.at(k+t)),ydata.at(idxs.at(k+t)),-1);
+			  cthreads = 1;
 			}
 		    }
 		  if (numcores > 1)
 		    {
-		      for(int t = 0; t < ncore; t++)
+		      for(int t = 0; t < cthreads; t++)
 			{
 			  bpthreads[t].join();
 			}
 		    }
-		  for (int q = 0; q < ncore; q++)
+		  for (int q = 0; q < cthreads; q++)
 		    {
 		      for(int j = 0; j < numhid + 1; j++)
 			{
@@ -1323,6 +1351,7 @@ void NNet::train_rprop(int mode, int verbose,double tmax)
       tdels[i].fill(0);
     }
   int rprop = 0;
+  int cthreads = 0;
   if (gradd == 0)
     {
       for (int k = 0; k < epoch; k++)
@@ -1342,12 +1371,17 @@ void NNet::train_rprop(int mode, int verbose,double tmax)
 		  if (!bpthreads.empty())
 		    {
 		      bpthreads.clear();
+		      cthreads = 0;
 		    }
 		  for (int t = 0; t < numcores; t++)
 		    {
-		      bpthreads.push_back(std::thread(&NNet::parallel_bp,this,i + t,t));
+		      if ((i + t) < train)
+			{
+			  bpthreads.push_back(std::thread(&NNet::parallel_bp,this,i + t,t));
+			  cthreads++;
+			}
 		    }
-		  for (int t = 0; t < numcores; t++)
+		  for (int t = 0; t < cthreads; t++)
 		    {
 		      bpthreads[t].join();
 		    }
@@ -1355,8 +1389,9 @@ void NNet::train_rprop(int mode, int verbose,double tmax)
 	      else
 		{
 		  backprop(xdata[i],ydata[i],0);
+		  cthreads = 1;
 		}
-	      for (int q = 0; q < numcores; q++)
+	      for (int q = 0; q < cthreads; q++)
 		{
 		  for (int j = 0; j < numhid + 1; j++)
 		    {
@@ -1370,9 +1405,8 @@ void NNet::train_rprop(int mode, int verbose,double tmax)
 	    {
 	      if (rprop == 0)
 		{
-		  params[l] = params[l] - (0.000001)*tgrads[l]; - 0.00001*params[l];
+		  params[l] = params[l] - (0.0001/(double)train)*tgrads[l]; - 0.00001*params[l];
 		  bias[l] = bias[l] - (0.0001/(double)train)*tdels[l];
-		  rprop++;
 		  tgrads[l].fill(0);
 		  tdels[l].fill(0);
 		}
@@ -1449,6 +1483,7 @@ void NNet::train_rprop(int mode, int verbose,double tmax)
 	      cout<<((double)i/(double)epoch)*100<<"%"<<endl;
 	    }
 	  int step = 0;
+	  int cthreads = 0;
 	  while (step < train)
 	    {
 	      int k = step;
@@ -1459,27 +1494,33 @@ void NNet::train_rprop(int mode, int verbose,double tmax)
 		  if (!bpthreads.empty())
 		    {
 		      bpthreads.clear();
+		      cthreads = 0;
 		    }
 		  for (int t = 0; t < ncore; t++)
 		    {
 		      if (numcores > 1)
 			{ 
-			  bpthreads.push_back(std::thread(&NNet::parallel_bp,this,idxs.at(k+t),t));
+			  if ((k+t) < train)
+			    {
+			      bpthreads.push_back(std::thread(&NNet::parallel_bp,this,idxs.at(k+t),t));
+			      cthreads++;
+			    }
 			}
 		      else
 			{
 			  //Threads create an overhead which is avoided if there is only one core available
-			    backprop(xdata.at(idxs.at(k+t)),ydata.at(idxs.at(k+t)),-1);
+			  backprop(xdata.at(idxs.at(k+t)),ydata.at(idxs.at(k+t)),-1);
+			  cthreads = 1;
 			}
 		    }
 		  if (numcores > 1)
 		    {
-		      for(int t = 0; t < ncore; t++)
+		      for(int t = 0; t < cthreads; t++)
 			{
 			  bpthreads[t].join();
 			}
 		    }
-		  for (int q = 0; q < ncore; q++)
+		  for (int q = 0; q < cthreads; q++)
 		    {
 		      for(int j = 0; j < numhid + 1; j++)
 			{
@@ -1594,6 +1635,7 @@ void NNet::d_trainrprop(int mode, int verbose,double tmax)
   int rprop = 0;
   if (gradd == 0)
     {
+      int cthreads = 0;
       for(int obd = 0; obd < 3; obd++)
 	{
 	  if (obd == 0)
@@ -1622,12 +1664,17 @@ void NNet::d_trainrprop(int mode, int verbose,double tmax)
 		      if (!bpthreads.empty())
 			{
 			  bpthreads.clear();
+			  cthreads = 0;
 			}
 		      for (int t = 0; t < numcores; t++)
 			{
-			  bpthreads.push_back(std::thread(&NNet::parallel_bp,this,i + t,t));
+			  if ((i+t) < train)
+			    {
+			      bpthreads.push_back(std::thread(&NNet::parallel_bp,this,i + t,t));
+			      cthreads++;
+			    }
 			}
-		      for (int t = 0; t < numcores; t++)
+		      for (int t = 0; t < cthreads; t++)
 			{
 			  bpthreads[t].join();
 			}
@@ -1635,8 +1682,9 @@ void NNet::d_trainrprop(int mode, int verbose,double tmax)
 		  else
 		    {
 		      backprop(xdata[i],ydata[i],0);
+		      cthreads = 1;
 		    }
-		  for (int q = 0; q < numcores; q++)
+		  for (int q = 0; q < cthreads; q++)
 		    {
 		      for (int j = 0; j < numhid + 1; j++)
 			{
@@ -1717,6 +1765,7 @@ void NNet::d_trainrprop(int mode, int verbose,double tmax)
     {
       cout<<"Initializing Stochastic Gradient Descent\n";
       vector<int> idxs;
+      int cthreads = 0;
       for (int i = 0; i < train; i++)
 	{
 	  idxs.push_back(i);
@@ -1754,27 +1803,33 @@ void NNet::d_trainrprop(int mode, int verbose,double tmax)
 		      if (!bpthreads.empty())
 			{
 			  bpthreads.clear();
+			  cthreads = 0;
 			}
 		      for (int t = 0; t < ncore; t++)
 			{
 			  if (numcores > 1)
 			    { 
-			      bpthreads.push_back(std::thread(&NNet::parallel_bp,this,idxs.at(k+t),t));
+			      if ((k+t) < train)
+				{
+				  bpthreads.push_back(std::thread(&NNet::parallel_bp,this,idxs.at(k+t),t));
+				  cthreads++;
+				}
 			    }
 			  else
 			    {
 			      //Threads create an overhead which is avoided if there is only one core available
 			      backprop(xdata.at(idxs.at(k+t)),ydata.at(idxs.at(k+t)),-1);
+			      cthreads = 1;
 			    }
 			}
 		      if (numcores > 1)
 			{
-			  for(int t = 0; t < ncore; t++)
+			  for(int t = 0; t < cthreads; t++)
 			    {
 			      bpthreads[t].join();
 			    }
 			}
-		      for (int q = 0; q < ncore; q++)
+		      for (int q = 0; q < cthreads; q++)
 			{
 			  for(int j = 0; j < numhid + 1; j++)
 			    {
