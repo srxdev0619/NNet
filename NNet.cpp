@@ -702,6 +702,10 @@ void NNet::train_net(double lrate, int mode, int verbose)
 	    }
 	  for (int i = 0; i < train; i = i + numcores)
 	    {
+	       for(int l = 0; l < numhid + 1; l++)
+		{
+		  params[l] = params[l] + beta*velocity[l];
+		}
 	      if (numcores > 1)
 		{
 		  if (!bpthreads.empty())
@@ -780,8 +784,8 @@ void NNet::train_net(double lrate, int mode, int verbose)
 				kappa = 0.001;
 			      }
 		          }
-		        params.at(j) = params.at(j) + (lrate/(double)100.0)*tgrads.at(j) + kappa*params.at(j);
-		        bias.at(j) = bias.at(j) + (lrate/(double)100.0)*tdels.at(j);
+		        params.at(j) = params.at(j) + (lrate)*tgrads.at(j) + kappa*params.at(j);
+		        bias.at(j) = bias.at(j) + (lrate)*tdels.at(j);
 		      }
 		      lrate = 0.99*lrate;
 		      ecount = (int)((double)epoch/(double)10);
@@ -928,14 +932,14 @@ void NNet::train_net(double lrate, int mode, int verbose)
 			{
 			  kappa = 0.001;
 			}
-		      params.at(j) = params.at(j) - (lrate/(double)100.0)*tgrads.at(j) - kappa*params.at(j);
+		      params.at(j) = params.at(j) - (lrate)*tgrads.at(j) - kappa*params.at(j);
 		      //tgrads.at(j).fill(0); //Doing this is the textbook method but commenting this out just works much much better
 		    }
 		  else
 		    {
 		      params.at(j) = params.at(j) + velocity.at(j) - kappa*params.at(j);
 		    }
-		  bias.at(j) = bias.at(j) - (lrate/(double)100.0)*tdels.at(j);
+		  bias.at(j) = bias.at(j) - (lrate)*tdels.at(j);
 		  //tdels.at(j).fill(0);   //Doing this is the textbook method but commenting this out just works much much better
 		}
 	    }
