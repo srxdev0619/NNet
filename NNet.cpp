@@ -25,6 +25,8 @@ void NNet::l_parallelbp(int index, int pos)
 {
   l_backprop(l_xvals[index],l_yvals[pos][index], pos);
 }
+
+
 //Contructor initilizes certain parameters
 NNet::NNet()
 {
