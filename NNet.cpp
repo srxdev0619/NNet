@@ -5,6 +5,7 @@
 #include<cctype>
 #include"NNet.h"
 #include<cmath>
+#include<iomanip>
 
 using namespace std;
 using namespace arma;
@@ -47,6 +48,16 @@ double NNet::sigmoid(double x)
   return 1/(exp((-1)*x) + 1);
 }
 
+double NNet::sigmoid_d(double x)
+{
+  return exp(x)/(pow((exp(x) + 1),2));
+}
+
+double NNet::sigmoid_dd(double x)
+{
+  return -1*((exp(x)*(exp(x) - 1))/(pow((exp(x) + 1),3)));
+}
+
 double NNet::tanh_net(double x)
 {
   return tanh(x);
@@ -69,6 +80,13 @@ double NNet::tanh_dr(double x)
   return 1.0-(tanh(x)*tanh(x));
 }
 
+
+double NNet::tanh_dd(double x)
+{
+  double sech = 1/cosh(x);
+  return -1*(2*(tanh(x))*(sech*sech));
+}
+
 double NNet::reclinear(double x)
 {
   if (x < 0)
@@ -80,6 +98,7 @@ double NNet::reclinear(double x)
       return x;
     }
 }
+
 
 double NNet::rec_D(double x)
 {
@@ -576,6 +595,43 @@ void NNet::d_backprop(mat x, mat y, int gpos)
       idx = gpos;
     }
   feed_forward(x,idx);
+  vector<mat> le_dels;
+  if (costfunc == 0)
+    {
+      le_dels.push_back((activ.at(idx).at(numhid+1) - y));
+    }
+  else
+    {
+      //TODO: have to complete results for other cost functions
+      return;
+    }
+  for (int i = 0; i < numhid; i++)
+    {
+      mat temp;
+      mat tle_del = le_dels[i];
+      mat derv = sums[idx][numhid + 1 - i];
+      if (funclayer[numhid - i] == 3)
+	{
+	  int n = numlayers[numhid + 1 - i];
+	  for (int j = 0; j < n; j++)
+	    {
+	      if (funclayer[numhid - i] == 0)
+		{
+		  tle_del(j,0) = tle_del(j,0)*sigmoid_d(derv(j,0));
+		}
+	      else if(funclayer[numhid - i] == 1)
+		{
+		  tle_del(j,0) = tle_del(j,0)*tanh_dr(derv(j,0));
+		}
+	      else if (funclayer[numhid - i] == 3)
+		{
+		  tle_del(j,0) = tle_del(j,0)*tanh_d(derv(j,0));
+		}
+	    }
+	}
+      temp = (params[numhid - i].t())*(tle_del);
+      le_dels.push_back(temp);
+    }
   if(!d_grads[idx].empty())
     { 
       d_grads[idx].clear();
@@ -588,27 +644,37 @@ void NNet::d_backprop(mat x, mat y, int gpos)
     {
       if (funclayer[numhid] == 0)
 	{
-	  d_dels[idx].push_back(2.0*((activ[idx][numhid+1] - (activ.at(idx).at(numhid+1)%activ.at(idx).at(numhid+1)))%(activ[idx][numhid+1] - (activ.at(idx).at(numhid+1)%activ.at(idx).at(numhid+1)))));
+	  for (int i = 0; i < numlayers[numhid+1]; i++)
+	    {
+	      le_dels[0](i,0) = le_dels[0](i,0)*sigmoid_dd(sums[idx][numhid + 1](i,0));
+	    }
+	  d_dels[idx].push_back(((activ[idx][numhid+1] - (activ.at(idx).at(numhid+1)%activ.at(idx).at(numhid+1)))%(activ[idx][numhid+1] - (activ.at(idx).at(numhid+1)%activ.at(idx).at(numhid+1)))) + le_dels[0]);
 	}
       else if (funclayer[numhid] == 1)
 	{
-	  d_dels[idx].push_back(2.0*((ones<mat>(numlayers[numhid+1],1) - activ[idx][numhid+1]%activ[idx][numhid+1])%(ones<mat>(numlayers[numhid+1],1) - activ[idx][numhid+1]%activ[idx][numhid+1])));
+	  for (int i = 0; i < numlayers[numhid+1]; i++)
+	    {
+	      le_dels[0](i,0) = le_dels[0](i,0)*tanh_dd(sums[idx][numhid + 1](i,0));
+	    }
+	  d_dels[idx].push_back(((ones<mat>(numlayers[numhid+1],1) - activ[idx][numhid+1]%activ[idx][numhid+1])%(ones<mat>(numlayers[numhid+1],1) - activ[idx][numhid+1]%activ[idx][numhid+1])) + le_dels[0]);
 	}
       else if (funclayer[numhid] == 2)
 	{
 	  for (int i = 0; i < numlayers[numhid+1]; i++)
 	    {
+	      le_dels[0](i,0) = 0.0*le_dels[0](i,0);
 	      sums[idx][numhid + 1](i,0) = rec_D(sums[idx][numhid + 1](i,0));
 	    }
-	  d_dels[idx].push_back(2.0*(sums[idx][numhid+1]%sums[idx][numhid+1]));
+	  d_dels[idx].push_back((sums[idx][numhid+1]%sums[idx][numhid+1]) + le_dels[0]);
 	}
       else if (funclayer[numhid] == 3)
 	{
 	  for (int i = 0; i < numlayers[numhid+1]; i++)
 	    {
+	      le_dels[0](i,0) = le_dels[0](i,0)*tanh_dd(sums[idx][numhid + 1](i,0));
 	      sums[idx][numhid + 1](i,0) = tanh_d(sums[idx][numhid + 1](i,0));
 	    }
-	  d_dels[idx].push_back(2.0*(sums[idx][numhid+1]%sums[idx][numhid+1]));
+	  d_dels[idx].push_back((sums[idx][numhid+1]%sums[idx][numhid+1]) + le_dels[0]);
 	}
     }
   else
@@ -626,6 +692,14 @@ void NNet::d_backprop(mat x, mat y, int gpos)
 	{
 	  if (funclayer[numhid - count] == 0)
 	    { 
+	      int rows = le_dels[i+1].n_rows;
+	      for(int rw = 0; rw < rows; rw++)
+		{
+		  if (funclayer[numhid-count] == 0)
+		    {
+		      le_dels[i+1](rw,0) = le_dels[i+1](rw,0)*sigmoid_dd(derv(rw,0));
+		    }
+		}
 	      derv = activ[idx][numhid- i] - (activ[idx][numhid - i]%activ[idx][numhid - i]);
 	    }
 	  else if (funclayer[numhid-count] == 1)
@@ -633,6 +707,7 @@ void NNet::d_backprop(mat x, mat y, int gpos)
 	      int n = numlayers[numhid - i];
 	      for (int j = 0; j < n; j++)
 		{
+		  le_dels[i+1](j,0) = le_dels[i+1](j,0)*tanh_dd(derv(j,0));
 		  derv(j,0) = tanh_dr(derv(j,0));
 		}
 	    }
@@ -641,6 +716,7 @@ void NNet::d_backprop(mat x, mat y, int gpos)
 	      int n = numlayers[numhid - i];
 	      for (int j = 0; j < n; j++)
 		{
+		  le_dels[i+1](j,0) = le_dels[i+1](j,0)*0.0;
 		  derv(j,0) = rec_D(derv(j,0));
 		}
 	    }
@@ -649,12 +725,13 @@ void NNet::d_backprop(mat x, mat y, int gpos)
 	      int n = numlayers[numhid - i];
 	      for (int j = 0; j < n; j++)
 		{
+		  le_dels[i+1](j,0) = le_dels[i+1](j,0)*tanh_dd(derv(j,0));
 		  derv(j,0) = tanh_d(derv(j,0));
 		}
 	    }
 	}
       temp = temp%(derv%derv);
-      d_dels[idx].push_back(temp);
+      d_dels[idx].push_back(temp + le_dels[i+1]);
       count++;
     }
   for (int i = 0; i < numhid + 1; i++)
@@ -696,10 +773,12 @@ void NNet::train_net(double lrate, int mode, int verbose)
 	{
 	  if (verbose == 0)
 	    {
+	      cout<<setprecision(2);
 	      cout<<"\r"<<((double)k/(double)epoch)*100<<"%"<<flush;
 	    }
 	  else
 	    {
+	      cout<<setprecision(2);
 	      cout<<((double)k/(double)epoch)*100<<"%"<<endl;
 	    }
 	  for (int i = 0; i < train; i = i + numcores)
@@ -841,10 +920,12 @@ void NNet::train_net(double lrate, int mode, int verbose)
 	{
 	  if (verbose == 0)
 	    {
+	      cout<<setprecision(2);
 	      cout<<"\r"<<((double)i/(double)epoch)*100<<"%"<<flush;
 	    }
 	  else
 	    {
+	      cout<<setprecision(2);
 	      cout<<((double)i/(double)epoch)*100<<"%"<<endl;
 	    }
 	  int step = 0;
@@ -1364,10 +1445,12 @@ void NNet::train_rprop(int mode, int verbose,double tmax)
 	{
 	  if (verbose == 0)
 	    {
+	      cout<<setprecision(5);
 	      cout<<"\r"<<((double)k/(double)epoch)*100<<"%"<<flush; 
 	    }
 	  else
 	    {
+	      cout<<setprecision(5);
 	      cout<<((double)k/(double)epoch)*100<<"%"<<endl;
 	    }
 	  for (int i = 0; i < train; i = i + numcores)
@@ -1482,10 +1565,12 @@ void NNet::train_rprop(int mode, int verbose,double tmax)
 	{
 	  if (verbose == 0)
 	    {
+	      cout<<setprecision(5);
 	      cout<<"\r"<<((double)i/(double)epoch)*100<<"%"<<flush; 
 	    }
 	  else
 	    {
+	      cout<<setprecision(5);
 	      cout<<((double)i/(double)epoch)*100<<"%"<<endl;
 	    }
 	  int step = 0;
@@ -1657,10 +1742,12 @@ void NNet::d_trainrprop(int mode, int verbose,double tmax)
 	    {
 	      if (verbose == 0)
 		{
+		  cout<<setprecision(2);
 		  cout<<"\r"<<((double)k/(double)epoch)*100<<"%"<<flush; 
 		}
 	      else
 		{
+		  cout<<setprecision(2);
 		  cout<<((double)k/(double)epoch)*100<<"%"<<endl;
 		}
 	      for (int i = 0; i < train; i = i + numcores)
@@ -1792,10 +1879,12 @@ void NNet::d_trainrprop(int mode, int verbose,double tmax)
 	    {
 	      if (verbose == 0)
 		{
+		  cout<<setprecision(2);
 		  cout<<"\r"<<((double)i/(double)epoch)*100<<"%"<<flush; 
 		}
 	      else
 		{
+		  cout<<setprecision(2);
 		  cout<<((double)i/(double)epoch)*100<<"%"<<endl;
 		}
 	      int step = 0;
@@ -2002,6 +2091,7 @@ void NNet::test_net(int verbose)
       temp_rmse = RMSE;
       if (verbose == 1)
 	{
+	  cout<<setprecision(5);
 	  cout<<"RMSE: "<<RMSE<<endl;
 	  cout<<"Average error: "<<averror<<endl;
 	}
@@ -2010,6 +2100,7 @@ void NNet::test_net(int verbose)
     {
       if(verbose == 1)
 	{
+	  cout<<setprecision(5);
 	  cout<<"Passed: "<<passed<<endl;
 	  cout<<"The accuracy is: "<<hitrate<<"%\n";
 	}
@@ -2420,6 +2511,7 @@ void NNet::test_file(string filename, int verbose,string netname, string sep1, s
       if (verbose == 1)
 	{
 	  double averror =  (sqrt(error))/(double)numlines;
+	  cout<<setprecision(5);
 	  cout<<"RMSE: "<<RMSE<<endl;
 	  cout<<"Average error: "<<averror<<endl;
 	}
@@ -2431,6 +2523,7 @@ void NNet::test_file(string filename, int verbose,string netname, string sep1, s
       if (verbose == 1)
 	{
 	  cout<<passed<<endl;
+	  cout<<setprecision(5);
 	  cout<<"The accuracy is: "<<hitrate<<"%"<<endl;
 	}
     }
@@ -2513,6 +2606,7 @@ void NNet::testfile(int verbose)
   if ((verbose == 1) && (classreg == 0))
     {
       cout<<passed<<endl;
+      cout<<setprecision(5);
       cout<<"The accuracy is: "<<hitrate<<"%\n";
     }
   double RMSE = sqrt((error/(double)train));
@@ -2522,6 +2616,7 @@ void NNet::testfile(int verbose)
       if (verbose == 1)
 	{
 	  double averror =  (sqrt(error)/(double)train);
+	  cout<<setprecision(5);
 	  cout<<"RMSE: "<<RMSE<<endl;
 	  cout<<"Average error: "<<averror<<endl;
 	}
@@ -3634,10 +3729,12 @@ void NNet::l_trainnet(int numlatent, int mode, double tol)
 	      if (trainmode == 0)
 		{
 		  double pc = ((double)k/(double)epoch)*100;
+		  cout<<setprecision(2);
 		  cout<<"\r"<<pc<<"%"<<flush;
 		}
 	      else if (trainmode == 1)
 		{
+		  cout<<setprecision(2);
 		  cout<<((double)k/(double)epoch)*100<<"%"<<endl;
 		  l_testall();
 		  cout<<endl;
@@ -3808,10 +3905,12 @@ void NNet::l_trainnet(int numlatent, int mode, double tol)
 	      if (trainmode == 0)
 		{
 		  double pc = ((double)i/(double)epoch)*100;
+		  cout<<setprecision(2);
 		  cout<<"\r"<<pc<<"%"<<flush;
 		}
 	      else if (trainmode == 1)
 		{
+		  cout<<setprecision(2);
 		  cout<<((double)i/(double)epoch)*100<<"%"<<endl;
 		  l_testall();
 		  cout<<endl;
@@ -4234,6 +4333,7 @@ void NNet::test_data(string in_filename, string out_filename, string netname, st
 	}
     }
   error = sqrt(error/(double)xnumlines);
+  cout<<setprecision(5);
   cout<<"RMSE :"<<error<<endl;
   return;
 }
@@ -4841,10 +4941,12 @@ void NNet::l_trainrprop(int numlatent, double tmax, int mode, double tol)
 	      if (trainmode == 0)
 		{
 		  double pc = ((double)k/(double)epoch)*100;
+		  cout<<setprecision(2);
 		  cout<<"\r"<<pc<<"%"<<flush;
 		}
 	      else if (trainmode == 1)
 		{
+		  cout<<setprecision(2);
 		  cout<<((double)k/(double)epoch)*100<<"%"<<endl;
 		  l_testall();
 		  cout<<endl;
@@ -5102,6 +5204,7 @@ void NNet::l_trainrprop(int numlatent, double tmax, int mode, double tol)
 	      if (trainmode == 0)
 		{
 		  pc = ((double)i/(double)epoch)*100;
+		  cout<<setprecision(2);
 		  cout<<"\r"<<pc<<"%"<<flush;
 		}
 	      if (trainmode == 1)
@@ -5258,6 +5361,7 @@ void NNet::l_testall(int mode)
       double averr = (sqrt(TRRMSE[i])/(double)trcounts[i]);
       if (mode == 0)
 	{
+	  cout<<setprecision(5);
 	  cout<<"Training error"<<endl;
 	  cout<<"Error of file "<<filenames[i]<<" is: "<<averr<<endl;
 	  cout<<"RMSE of file "<<filenames[i]<<" is: "<<frmse<<endl;
@@ -5269,6 +5373,7 @@ void NNet::l_testall(int mode)
 	  l_error = l_error + tserror;
 	  if (mode == 0)
 	    {
+	      cout<<setprecision(5);
 	      cout<<"Test Error"<<endl;
 	      cout<<"Error of file "<<filenames[i]<<" is: "<<tserror<<endl;
 	      cout<<"RMSE of file "<<filenames[i]<<" is: "<<tsrmse<<endl;
@@ -5280,7 +5385,6 @@ void NNet::l_testall(int mode)
 
 
 //Calculates the second order gradients
-//TODO: DO IT ASAP !!!!!!!
 void NNet::ld_backprop(mat x, mat y, int gpos)
 {
   int idx;
@@ -5294,6 +5398,43 @@ void NNet::ld_backprop(mat x, mat y, int gpos)
     }
   int l_numhid = l_numhids.at(idx);
   l_feedforward(x,idx);
+  vector<mat> le_dels;
+  if (costfunc == 0)
+    {
+      le_dels.push_back((l_activ.at(idx).at(l_numhid+1) - y));
+    }
+  else
+    {
+      //TODO: have to complete results for other cost functions
+      return;
+    }
+  for (int i = 0; i < l_numhid; i++)
+    {
+      mat temp;
+      mat tle_del = le_dels[i];
+      mat derv = l_sums[idx][l_numhid + 1 - i];
+      if (l_funclayer[idx][l_numhid - i] == 3)
+	{
+	  int n = l_numlayers[idx][l_numhid + 1 - i];
+	  for (int j = 0; j < n; j++)
+	    {
+	      if (l_funclayer[idx][l_numhid - i] == 0)
+		{
+		  tle_del(j,0) = tle_del(j,0)*sigmoid_d(derv(j,0));
+		}
+	      else if(l_funclayer[idx][l_numhid - i] == 1)
+		{
+		  tle_del(j,0) = tle_del(j,0)*tanh_dr(derv(j,0));
+		}
+	      else if (l_funclayer[idx][l_numhid - i] == 3)
+		{
+		  tle_del(j,0) = tle_del(j,0)*tanh_d(derv(j,0));
+		}
+	    }
+	}
+      temp = (l_params[idx][l_numhid - i].t())*(tle_del);
+      le_dels.push_back(temp);
+    }
   if(!ld_grads[idx].empty())
     { 
       ld_grads[idx].clear();
@@ -5306,27 +5447,37 @@ void NNet::ld_backprop(mat x, mat y, int gpos)
     {
       if (l_funclayer[idx][l_numhid] == 0)
 	{
-	  ld_dels[idx].push_back(2.0*((l_activ[idx][l_numhid+1] - (l_activ.at(idx).at(l_numhid+1)%l_activ.at(idx).at(l_numhid+1)))%(l_activ[idx][l_numhid+1] - (l_activ.at(idx).at(l_numhid+1)%l_activ.at(idx).at(l_numhid+1)))));
+	  for (int i = 0; i < l_numlayers[idx][l_numhid+1]; i++)
+	    {
+	      le_dels[0](i,0) = le_dels[0](i,0)*sigmoid_dd(l_sums[idx][l_numhid + 1](i,0));
+	    }
+	  ld_dels[idx].push_back(((l_activ[idx][l_numhid+1] - (l_activ.at(idx).at(l_numhid+1)%l_activ.at(idx).at(l_numhid+1)))%(l_activ[idx][l_numhid+1] - (l_activ.at(idx).at(l_numhid+1)%l_activ.at(idx).at(l_numhid+1)))) + le_dels[0]);
 	}
       else if (l_funclayer[idx][l_numhid] == 1)
 	{
-	  ld_dels[idx].push_back(2.0*((ones<mat>(numlayers[l_numhid+1],1) - l_activ[idx][l_numhid+1]%l_activ[idx][l_numhid+1])%(ones<mat>(l_numlayers[idx][l_numhid+1],1) - l_activ[idx][l_numhid+1]%l_activ[idx][l_numhid+1])));
+	  for (int i = 0; i < l_numlayers[idx][l_numhid+1]; i++)
+	    {
+	      le_dels[0](i,0) = le_dels[0](i,0)*tanh_dd(l_sums[idx][l_numhid + 1](i,0));
+	    }
+	  ld_dels[idx].push_back(((ones<mat>(numlayers[l_numhid+1],1) - l_activ[idx][l_numhid+1]%l_activ[idx][l_numhid+1])%(ones<mat>(l_numlayers[idx][l_numhid+1],1) - l_activ[idx][l_numhid+1]%l_activ[idx][l_numhid+1])) + le_dels[0]);
 	}
       else if (l_funclayer[idx][l_numhid] == 2)
 	{
 	  for (int i = 0; i < l_numlayers[idx][l_numhid+1]; i++)
 	    {
+	      le_dels[0](i,0) = 0.0*le_dels[0](i,0);
 	      l_sums[idx][l_numhid + 1](i,0) = rec_D(l_sums[idx][l_numhid + 1](i,0));
 	    }
-	  ld_dels[idx].push_back(2.0*(l_sums[idx][l_numhid+1]%l_sums[idx][l_numhid+1]));
+	  ld_dels[idx].push_back((l_sums[idx][l_numhid+1]%l_sums[idx][l_numhid+1]) + le_dels[0]);
 	}
       else if (l_funclayer[idx][l_numhid] == 3)
 	{
 	  for (int i = 0; i < l_numlayers[idx][l_numhid+1]; i++)
 	    {
+	      le_dels[0](i,0) = le_dels[0](i,0)*tanh_dd(l_sums[idx][l_numhid + 1](i,0));
 	      l_sums[idx][l_numhid + 1](i,0) = tanh_d(l_sums[idx][l_numhid + 1](i,0));
 	    }
-	  ld_dels[idx].push_back(2.0*(l_sums[idx][l_numhid+1]%l_sums[idx][l_numhid+1]));
+	  ld_dels[idx].push_back(l_sums[idx][l_numhid+1]%l_sums[idx][l_numhid+1] + le_dels[0]);
 	}
     }
   else
@@ -5344,6 +5495,14 @@ void NNet::ld_backprop(mat x, mat y, int gpos)
 	{
 	  if (l_funclayer[idx][l_numhid - count] == 0)
 	    { 
+	      int rows = le_dels[i+1].n_rows;
+	      for(int rw = 0; rw < rows; rw++)
+		{
+		  if (l_funclayer[idx][l_numhid-count] == 0)
+		    {
+		      le_dels[i+1](rw,0) = le_dels[i+1](rw,0)*sigmoid_dd(derv(rw,0));
+		    }
+		}
 	      derv = l_activ[idx][l_numhid- i] - (l_activ[idx][l_numhid - i]%l_activ[idx][l_numhid - i]);
 	    }
 	  else if (l_funclayer[idx][l_numhid-count] == 1)
@@ -5351,6 +5510,7 @@ void NNet::ld_backprop(mat x, mat y, int gpos)
 	      int n = l_numlayers[idx][l_numhid - i];
 	      for (int j = 0; j < n; j++)
 		{
+		  le_dels[i+1](j,0) = le_dels[i+1](j,0)*tanh_dd(derv(j,0));
 		  derv(j,0) = tanh_dr(derv(j,0));
 		}
 	    }
@@ -5359,6 +5519,7 @@ void NNet::ld_backprop(mat x, mat y, int gpos)
 	      int n = l_numlayers[idx][l_numhid - i];
 	      for (int j = 0; j < n; j++)
 		{
+		  le_dels[i+1](j,0) = le_dels[i+1](j,0)*0.0;
 		  derv(j,0) = rec_D(derv(j,0));
 		}
 	    }
@@ -5367,16 +5528,19 @@ void NNet::ld_backprop(mat x, mat y, int gpos)
 	      int n = l_numlayers[idx][l_numhid - i];
 	      for (int j = 0; j < n; j++)
 		{
+		  le_dels[i+1](j,0) = le_dels[i+1](j,0)*tanh_dd(derv(j,0));
 		  derv(j,0) = tanh_d(derv(j,0));
 		}
 	    }
+	   temp = temp%(derv%derv);
+	   ld_dels[idx].push_back(temp+ le_dels[i+1]);
 	}
       else
 	{
 	  derv = ones<mat>(l_numlayers[idx][0],1);
+	  temp = temp%(derv%derv);
+	  ld_dels[idx].push_back(temp);
 	}
-      temp = temp%(derv%derv);
-      ld_dels[idx].push_back(temp);
       count++;
     }
   for (int i = 0; i < l_numhid + 1; i++)
@@ -5906,10 +6070,12 @@ void NNet::ld_trainrprop(int numlatent, double tmax, int mode, double tol)
 		  if (trainmode == 0)
 		    {
 		      double pc = ((double)k/(double)epoch)*100;
+		      cout<<setprecision(2);
 		      cout<<"\r"<<pc<<"%"<<flush;
 		    }
 		  else if (trainmode == 1)
 		    {
+		      cout<<setprecision(2);
 		      cout<<((double)k/(double)epoch)*100<<"%"<<endl;
 		      l_testall();
 		      cout<<endl;
@@ -6194,10 +6360,12 @@ void NNet::ld_trainrprop(int numlatent, double tmax, int mode, double tol)
 		  if (trainmode == 0)
 		    {
 		      pc = ((double)i/(double)epoch)*100;
+		      cout<<setprecision(2);
 		      cout<<"\r"<<pc<<"%"<<flush;
 		    }
 		  if (trainmode == 1)
 		    {
+		      cout<<setprecision(2);
 		      cout<<((double)i/(double)epoch)*100<<"%"<<endl;
 		      l_testall();
 		      cout<<endl;
