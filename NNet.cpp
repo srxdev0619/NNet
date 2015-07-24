@@ -1374,13 +1374,27 @@ void NNet::optimalBD(void)
 	{
 	  for(int cl = 0; cl < cols; cl++)
 	    {
-	      if (saliencies[i](rw,cl) < min_s)
+	      if (checksals.empty())
 		{
-		  min_s = saliencies[i](rw,cl);
+		  if (saliencies[i](rw,cl) < min_s)
+		    {
+		      min_s = saliencies[i](rw,cl);
+		    }
+		  else
+		    {
+		      continue;
+		    }
 		}
 	      else
 		{
-		  continue;
+		  if ((saliencies[i](rw,cl) < min_s) && (checksals[i](rw,cl) != 0))
+		    {
+		      min_s = saliencies[i](rw,cl);
+		    }
+		  else
+		    {
+		      continue;
+		    } 
 		}
 	    }
 	}
@@ -5634,13 +5648,27 @@ void NNet::l_optimalBD(int pos)
 	{
 	  for(int cl = 0; cl < cols; cl++)
 	    {
-	      if (l_saliencies[pos][i](rw,cl) < min_s)
+	      if (l_checksals[pos].empty())
 		{
-		  min_s = l_saliencies[pos][i](rw,cl);
+		  if (l_saliencies[pos][i](rw,cl) < min_s)
+		    {
+		      min_s = l_saliencies[pos][i](rw,cl);
+		    }
+		  else
+		    {
+		      continue;
+		    }
 		}
 	      else
 		{
-		  continue;
+		  if ((l_saliencies[pos][i](rw,cl) < min_s) && (l_checksals[pos][i](rw,cl) != 0))
+		    {
+		      min_s = l_saliencies[pos][i](rw,cl);
+		    }
+		  else
+		    {
+		      continue;
+		    }
 		}
 	    }
 	}
@@ -5649,7 +5677,7 @@ void NNet::l_optimalBD(int pos)
     {
       int rows = l_saliencies[pos][i].n_rows;
       int cols = l_saliencies[pos][i].n_cols;
-      double s_tol = min_s/10.0;
+      double s_tol = min_s;
       for(int rw = 0; rw < rows; rw++)
 	{
 	  for(int cl = 0; cl < cols; cl++)
