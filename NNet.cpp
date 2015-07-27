@@ -392,6 +392,36 @@ void NNet::load(string filename,int imode, string sep1, string sep2)
 }
 
 
+void NNet::grow_net(int additions)
+{
+  train_rprop(0,1,100.0);
+  cout<<"TEST ERROR"<<endl;
+  test_file("XYP_test");
+  cout<<"##############################################"<<endl;
+  for (int i = 0; i < additions; i++)
+    {
+      numlayers[1] = numlayers[1] + 1;
+      cout<<"Number of hidden units: "<<numlayers[1]<<endl;
+      mat f = randn<mat>(1,numlayers[0]);
+      mat s = randn<mat>(numlayers[2],1);
+      mat f1 = zeros<mat>(1,numlayers[0]);
+      mat s1 = zeros<mat>(numlayers[2],1);
+      params[0].insert_rows(0,f);
+      params[1].insert_cols(0,s);
+      tgrads[0].insert_rows(0,f1);
+      tgrads[1].insert_cols(0,s1);
+      mat b1 = randn<mat>(1,1);
+      mat b2 = zeros<mat>(1,1);
+      bias[0].insert_rows(0,b1);
+      tdels[0].insert_rows(0,b2);
+      train_rprop(0,1,100.0);
+      cout<<"TEST ERROR"<<endl;
+      test_file("XYP_test");
+      cout<<"##############################################"<<endl;
+    }
+}
+
+
 //Runs feedforward
 void NNet::feed_forward(mat x,int gpos)
 {
@@ -1455,6 +1485,7 @@ void NNet::train_rprop(int mode, int verbose,double tmax)
   int cthreads = 0;
   if (gradd == 0)
     {
+      cout<<"BATCH"<<endl;
       for (int k = 0; k < epoch; k++)
 	{
 	  if (verbose == 0)
@@ -1530,6 +1561,16 @@ void NNet::train_rprop(int mode, int verbose,double tmax)
 	      rprop++;
 	    }
 	  //Below takes extra measures so that the network converges
+	  ///TEMP_CODE
+	  if (loadmode == 1) 
+	    {                     
+	      testfile(verbose);
+	    }
+	  else 
+	    {
+	      test_net(verbose);
+	    }
+	  //TEMP_CODE
 	  if (trainmode == 1)
 	    {
 	      if (loadmode == 1)
@@ -5718,15 +5759,19 @@ void NNet::ls_optimalBD(void)
       ls_saliencies.clear();
     }
   vector<double> l_mins;
+  fstream savesals;   //TEMP
+  savesals.open("Saliencies.txt",fstream::out);   //TEMP
   for (int i = 0; i < l_train; i++)
     {
-      ls_saliencies.push_back((1.0/(double)numfiles)*ld_tdels[i]);
+      ls_saliencies.push_back((0.5/(double)numfiles)*ld_tdels[i]%(l_xvals[i]%l_xvals[i]));
       l_mins.push_back(1000.0);
     }
+  cout<<"Saving Saliencies!"<<endl;  //TEMP
   for (int i = 0; i < l_train; i++)
     {
-      for(int j = 0; j < l_numlatent; j++)
+      for(int j = 0; j < l_numx; j++) //TEMP: Change l_numx -> l_numlatent
 	{
+	  savesals<<ls_saliencies[i](j,0)<<",";  //TEMP
 	  if (ls_saliencies[i](j,0) < l_mins[i])
 	    {
 	      l_mins[i] = ls_saliencies[i](j,0);
@@ -5736,7 +5781,10 @@ void NNet::ls_optimalBD(void)
 	      continue;
 	    }
 	}
+      savesals<<"\n";  //TEMP
     }
+  savesals.close();  //TEMP
+  abort();  //TEMP
   vector<double> s_tol;
   for(int i = 0; i < l_train; i++)
     {
@@ -5745,7 +5793,7 @@ void NNet::ls_optimalBD(void)
 	{
 	  if (j < l_numlatent)
 	    {
-	      if (abs(ls_saliencies[i](j,0) - l_xvals[i](j,0)) < s_tol[i])
+	      if (abs(ls_saliencies[i](j,0) - l_mins[i]) < s_tol[i])
 		{
 		  ls_saliencies[i](j,0) = 0.0;
 		}
